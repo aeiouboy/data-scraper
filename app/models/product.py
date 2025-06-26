@@ -3,7 +3,7 @@ Product models for Supabase integration
 """
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from decimal import Decimal
 
 
@@ -28,30 +28,33 @@ class Product(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     
-    @validator("sku")
+    @field_validator("sku")
+    @classmethod
     def validate_sku(cls, v):
         if not v or not v.strip():
             raise ValueError("SKU cannot be empty")
         return v.strip()
     
-    @validator("current_price", "original_price")
+    @field_validator("current_price", "original_price")
+    @classmethod
     def validate_price(cls, v):
         if v is not None and v < 0:
             raise ValueError("Price cannot be negative")
         return v
     
-    @validator("discount_percentage")
-    def calculate_discount(cls, v, values):
-        if "current_price" in values and "original_price" in values:
-            current = values.get("current_price")
-            original = values.get("original_price")
+    @field_validator("discount_percentage")
+    @classmethod
+    def calculate_discount(cls, v, info):
+        if info.data.get("current_price") and info.data.get("original_price"):
+            current = info.data.get("current_price")
+            original = info.data.get("original_price")
             if current and original and original > current:
                 return float(((original - current) / original) * 100)
         return v
     
     def to_supabase_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for Supabase insertion"""
-        data = self.dict(exclude={"id", "created_at", "updated_at"})
+        data = self.model_dump(exclude={"id", "created_at", "updated_at"})
         
         # Convert Decimal to float for JSON serialization
         if data.get("current_price"):
@@ -77,7 +80,8 @@ class PriceHistory(BaseModel):
     discount_percentage: Optional[float] = None
     recorded_at: datetime = Field(default_factory=datetime.now)
     
-    @validator("price")
+    @field_validator("price")
+    @classmethod
     def validate_price(cls, v):
         if v < 0:
             raise ValueError("Price cannot be negative")
@@ -85,7 +89,7 @@ class PriceHistory(BaseModel):
     
     def to_supabase_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for Supabase insertion"""
-        data = self.dict(exclude={"id"})
+        data = self.model_dump(exclude={"id"})
         
         # Convert Decimal to float
         data["price"] = float(data["price"])
@@ -108,7 +112,8 @@ class Category(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name(cls, v):
         if not v or not v.strip():
             raise ValueError("Category name cannot be empty")

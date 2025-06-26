@@ -17,7 +17,7 @@ Web scraping system for HomePro products using Firecrawl API and Supabase.
 
 ```bash
 # Install dependencies
-python setup.py
+python3 setup.py
 
 # Activate virtual environment
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -40,28 +40,35 @@ Run the SQL script in your Supabase SQL Editor:
 ### 4. Test Connection
 
 ```bash
-python -m app.test_connection
+python3 -m app.test_connection
 ```
 
 ## Usage
 
 ### CLI Commands
 
+**Important**: Always activate the virtual environment first:
+```bash
+cd "/Users/chongraktanaka/Documents/Project/ris data scrap"
+source venv/bin/activate
+```
+
+Then run commands using `python3`:
 ```bash
 # Scrape a single product
-python scrape.py product https://www.homepro.co.th/p/12345
+python3 scrape.py product https://www.homepro.co.th/p/12345
 
 # Scrape an entire category
-python scrape.py category https://www.homepro.co.th/c/electrical --max-pages 5
+python3 scrape.py category https://www.homepro.co.th/c/electrical --max-pages 5
 
 # Discover product URLs
-python scrape.py discover https://www.homepro.co.th/c/tools
+python3 scrape.py discover https://www.homepro.co.th/c/tools
 
 # Show statistics
-python scrape.py stats
+python3 scrape.py stats
 
 # Search products
-python scrape.py search "drill" --limit 20
+python3 scrape.py search "drill" --limit 20
 ```
 
 ### Python API

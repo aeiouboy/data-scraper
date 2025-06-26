@@ -140,8 +140,31 @@ class DataProcessor:
             Validated Product or None if invalid
         """
         try:
-            # Extract basic fields
-            name = self.clean_text(raw_data.get('name') or raw_data.get('title'))
+            # Check if we have markdown content
+            markdown = raw_data.get('markdown', '')
+            
+            # If we have markdown, parse it for product info
+            if markdown:
+                logger.debug("Processing markdown content")
+                # For now, extract title from markdown
+                lines = markdown.split('\n')
+                name = None
+                for line in lines[:20]:  # Check first 20 lines
+                    line = line.strip()
+                    if line and not line.startswith('#') and len(line) > 10:
+                        name = self.clean_text(line)
+                        break
+                
+                if not name:
+                    # Try to find any heading
+                    for line in lines:
+                        if line.startswith('# ') and len(line) > 3:
+                            name = self.clean_text(line[2:])
+                            break
+            else:
+                # Fallback to extracted data if available
+                name = self.clean_text(raw_data.get('name') or raw_data.get('title'))
+            
             if not name:
                 logger.warning(f"No product name found for {url}")
                 return None

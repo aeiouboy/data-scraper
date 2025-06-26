@@ -40,7 +40,7 @@ def main():
     
     # Create virtual environment
     if not Path("venv").exists():
-        if not run_command("python -m venv venv", "Creating virtual environment"):
+        if not run_command("python3 -m venv venv", "Creating virtual environment"):
             sys.exit(1)
     
     # Determine pip path

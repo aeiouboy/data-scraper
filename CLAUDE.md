@@ -10,7 +10,7 @@ This is a web scraping project for HomePro (Thai home improvement retailer) prod
 
 1. **Setup Environment**
    ```bash
-   python setup.py
+   python3 setup.py
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
@@ -23,7 +23,7 @@ This is a web scraping project for HomePro (Thai home improvement retailer) prod
 
 4. **Test Connections**
    ```bash
-   python -m app.test_connection
+   python3 -m app.test_connection
    ```
 
 ## Architecture
@@ -65,14 +65,14 @@ Celery workers handle:
 ### Setup and Dependencies
 ```bash
 # Create virtual environment
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Setup database
-alembic upgrade head
+# Setup database (run in Supabase SQL Editor)
+# See scripts/create_schema.sql
 ```
 
 ### Running the Application

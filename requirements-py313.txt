@@ -1,0 +1,6 @@
+# Minimal requirements for Python 3.13
+python-dotenv
+pydantic
+pydantic-settings
+supabase
+httpx

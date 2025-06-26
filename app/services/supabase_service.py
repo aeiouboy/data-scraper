@@ -3,6 +3,7 @@ Supabase database service for CRUD operations
 """
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+from decimal import Decimal
 import logging
 from supabase import create_client, Client
 from config import get_settings
@@ -140,7 +141,7 @@ class SupabaseService:
             )
             
             result = self.client.table('scrape_jobs').insert(
-                job.dict(exclude={'id', 'created_at'})
+                job.model_dump(exclude={'id', 'created_at'})
             ).execute()
             
             return result.data[0] if result.data else None

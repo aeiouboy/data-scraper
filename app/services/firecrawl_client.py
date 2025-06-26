@@ -78,24 +78,8 @@ class FirecrawlClient:
                         "pageOptions": {
                             "includeHtml": False,
                             "onlyMainContent": True,
-                            "screenshot": False
-                        },
-                        "extractorOptions": {
-                            "mode": "llm-extraction",
-                            "extractionPrompt": """
-                            Extract product information in this format:
-                            - name: product name (in Thai)
-                            - sku: product SKU/code
-                            - brand: brand name
-                            - price: current price (number only)
-                            - originalPrice: original price if on sale
-                            - category: product category
-                            - description: product description
-                            - features: list of key features
-                            - specifications: technical specs
-                            - availability: in stock/out of stock
-                            - images: list of image URLs
-                            """
+                            "screenshot": False,
+                            "waitFor": 2000  # Wait for page to load
                         }
                     }
                 )
@@ -103,7 +87,17 @@ class FirecrawlClient:
                 if response.status_code == 200:
                     data = response.json()
                     logger.info(f"Successfully scraped: {url}")
-                    return data.get("data", {})
+                    scraped_data = data.get("data", {})
+                    
+                    # Log what we got
+                    if scraped_data:
+                        logger.debug(f"Raw data keys: {list(scraped_data.keys())}")
+                        # Log first 500 chars of markdown to see content
+                        markdown = scraped_data.get("markdown", "")
+                        if markdown:
+                            logger.debug(f"Markdown preview: {markdown[:500]}...")
+                    
+                    return scraped_data
                 elif response.status_code == 429:
                     # Rate limit hit, wait longer
                     wait_time = int(response.headers.get("Retry-After", 60))
@@ -175,7 +169,25 @@ class FirecrawlClient:
                     status = data.get("status")
                     
                     if status == "completed":
-                        return [item["url"] for item in data.get("data", [])]
+                        # Handle different response formats
+                        crawl_data = data.get("data", [])
+                        urls = []
+                        logger.info(f"Crawl completed with {len(crawl_data)} items")
+                        
+                        for item in crawl_data:
+                            if isinstance(item, dict):
+                                # Log the first item to see structure
+                                if not urls:
+                                    logger.debug(f"Sample item structure: {list(item.keys())}")
+                                # Try different possible keys
+                                url = item.get("url") or item.get("sourceUrl") or item.get("link")
+                                if url:
+                                    urls.append(url)
+                            elif isinstance(item, str):
+                                urls.append(item)
+                        
+                        logger.info(f"Extracted {len(urls)} URLs from crawl")
+                        return urls
                     elif status == "failed":
                         logger.error(f"Crawl job failed: {job_id}")
                         return []

@@ -3,7 +3,8 @@ Secure configuration management for HomePro Scraper
 """
 import os
 from typing import Optional
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -25,21 +26,25 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "info"
     
-    @validator("supabase_url")
+    @field_validator("supabase_url")
+    @classmethod
     def validate_supabase_url(cls, v):
         if not v.startswith("https://") or not v.endswith(".supabase.co"):
             raise ValueError("Invalid Supabase URL format")
         return v
     
-    @validator("firecrawl_api_key")
+    @field_validator("firecrawl_api_key")
+    @classmethod
     def validate_firecrawl_key(cls, v):
         if v.startswith("fc-"):
             return v
         raise ValueError("Invalid Firecrawl API key format")
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+        "extra": "ignore"  # Ignore extra fields in .env
+    }
 
 
 def get_settings() -> Settings:
