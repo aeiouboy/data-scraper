@@ -18,20 +18,39 @@ class DataProcessor:
         """Extract numeric price from text"""
         if not price_text:
             return None
-            
-        # Convert to string and remove common patterns
-        price_str = str(price_text)
-        # Remove Thai baht symbol, commas, spaces
-        price_str = re.sub(r'[฿,\s]', '', price_str)
-        # Remove "บาท" (baht in Thai)
-        price_str = re.sub(r'บาท', '', price_str)
         
-        # Extract first number pattern
-        match = re.search(r'(\d+(?:\.\d{1,2})?)', price_str)
+        # Handle non-string types
+        if isinstance(price_text, (list, dict)):
+            return None
+        
+        if isinstance(price_text, (int, float)):
+            if price_text <= 0:
+                return None
+            try:
+                return Decimal(str(price_text))
+            except (ValueError, TypeError, ArithmeticError):
+                return None
+            
+        # Convert to string and check if it looks like a price
+        price_str = str(price_text).strip()
+        
+        # If it's just letters or obviously not a price, return None
+        if re.match(r'^[a-zA-Z]+$', price_str):
+            return None
+        
+        # Remove Thai baht symbol, commas, spaces
+        cleaned_price = re.sub(r'[฿,\s]', '', price_str)
+        # Remove "บาท" (baht in Thai)
+        cleaned_price = re.sub(r'บาท', '', cleaned_price)
+        
+        # Extract first number pattern that looks like a price
+        match = re.search(r'(\d+(?:\.\d{1,2})?)', cleaned_price)
         if match:
             try:
-                return Decimal(match.group(1))
-            except:
+                decimal_price = Decimal(match.group(1))
+                if decimal_price > 0:  # Only positive prices are valid
+                    return decimal_price
+            except (ValueError, TypeError, ArithmeticError):
                 return None
         return None
     
@@ -115,7 +134,7 @@ class DataProcessor:
         
         out_of_stock_patterns = [
             'out of stock', 'unavailable', 'หมด', 'สินค้าหมด',
-            'sold out', 'ไม่มีสินค้า', 'out-of-stock'
+            'sold out', 'ไม่มีสินค้า', 'out-of-stock', 'currently unavailable'
         ]
         
         for pattern in in_stock_patterns:
@@ -282,8 +301,11 @@ class DataProcessor:
             logger.info(f"Successfully processed product: {sku} - {name}")
             return product
             
-        except Exception as e:
+        except (KeyError, ValueError, TypeError) as e:
             logger.error(f"Error processing product data for {url}: {str(e)}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error processing product data for {url}: {str(e)}")
             return None
     
     def validate_product(self, product: Product) -> bool:
