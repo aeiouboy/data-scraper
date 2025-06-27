@@ -74,17 +74,15 @@ class HomeProScraper:
             List of discovered product URLs
         """
         try:
-            async with self.firecrawl as client:
-                urls = await client.crawl(start_url, max_pages)
+            from app.core.url_discovery import URLDiscovery
             
-            # Filter for product URLs
-            product_urls = [
-                url for url in urls 
-                if '/product/' in url or '/p/' in url
-            ]
-            
-            logger.info(f"Discovered {len(product_urls)} product URLs")
-            return product_urls
+            discovery = URLDiscovery()
+            try:
+                product_urls = await discovery.discover_from_category(start_url, max_pages)
+                logger.info(f"Discovered {len(product_urls)} product URLs")
+                return product_urls
+            finally:
+                await discovery.close()
             
         except Exception as e:
             logger.error(f"Error discovering URLs: {str(e)}")

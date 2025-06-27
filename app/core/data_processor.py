@@ -140,49 +140,88 @@ class DataProcessor:
             Validated Product or None if invalid
         """
         try:
-            # Check if we have markdown content
+            # Get metadata if available
+            metadata = raw_data.get('metadata', {})
             markdown = raw_data.get('markdown', '')
             
-            # If we have markdown, parse it for product info
-            if markdown:
-                logger.debug("Processing markdown content")
-                # For now, extract title from markdown
+            # Extract product name from metadata first, then markdown
+            name = metadata.get('title', '').strip()
+            if not name and markdown:
+                # Try to find product title in markdown
+                # Look for patterns like "# Product Name" or product name patterns
                 lines = markdown.split('\n')
-                name = None
-                for line in lines[:20]:  # Check first 20 lines
-                    line = line.strip()
-                    if line and not line.startswith('#') and len(line) > 10:
-                        name = self.clean_text(line)
+                for line in lines:
+                    if line.startswith('# ') and 'เครื่อง' in line:  # Common Thai product prefix
+                        name = self.clean_text(line[2:])
                         break
-                
-                if not name:
-                    # Try to find any heading
-                    for line in lines:
-                        if line.startswith('# ') and len(line) > 3:
-                            name = self.clean_text(line[2:])
-                            break
-            else:
-                # Fallback to extracted data if available
-                name = self.clean_text(raw_data.get('name') or raw_data.get('title'))
+                    elif 'ชื่อสินค้า' in line or 'Product Name' in line:
+                        # Extract from next line or same line
+                        parts = line.split(':')
+                        if len(parts) > 1:
+                            name = self.clean_text(parts[1])
+                        break
+            
+            if not name:
+                # Try metadata description
+                desc = metadata.get('description', '')
+                if desc and ',' in desc:
+                    # Format often: "Product Name, Brand, SKU"
+                    name = desc.split(',')[0].strip()
             
             if not name:
                 logger.warning(f"No product name found for {url}")
                 return None
             
-            # Extract SKU
-            sku = self.extract_sku(raw_data.get('sku') or raw_data.get('code'))
+            # Extract SKU - HomePro uses product ID in URL
+            sku = None
+            # Try to extract from URL first (e.g., /p/1243357)
+            url_match = re.search(r'/p/(\d+)', url)
+            if url_match:
+                sku = url_match.group(1)
+            
             if not sku:
-                # Try to extract from URL or name
-                sku = self.extract_sku(url) or self.extract_sku(name)
+                # Try metadata or markdown
+                sku = self.extract_sku(metadata.get('description', ''))
+                if not sku and markdown:
+                    sku = self.extract_sku(markdown)
             
             if not sku:
                 # Generate SKU from URL hash
                 import hashlib
                 sku = f"HP-{hashlib.md5(url.encode()).hexdigest()[:8].upper()}"
             
-            # Process prices
-            current_price = self.extract_price(raw_data.get('price') or raw_data.get('current_price'))
-            original_price = self.extract_price(raw_data.get('originalPrice') or raw_data.get('original_price'))
+            # Process prices - look in markdown for Thai Baht prices
+            current_price = None
+            original_price = None
+            
+            if markdown:
+                # Look for price pattern near "มีคนซื้อไปแล้ว" (people have bought) section
+                # This section typically contains the actual selling price
+                bought_section = re.search(r'มีคนซื้อไปแล้ว.*?฿(\d+(?:,\d+)*)\s*/each\s*฿(\d+(?:,\d+)*)', markdown, re.DOTALL)
+                if bought_section:
+                    # First price after "มีคนซื้อไปแล้ว" is current price, second is original
+                    current_price = self.extract_price(bought_section.group(1))
+                    original_price = self.extract_price(bought_section.group(2))
+                else:
+                    # Fallback: Find prices in markdown (฿2,490 format)
+                    price_matches = re.findall(r'฿\s*([\d,]+)', markdown)
+                    if price_matches:
+                        # Look for a pattern where two prices appear close together
+                        # The smaller one is likely the sale price
+                        if len(price_matches) >= 2:
+                            price1 = self.extract_price(price_matches[0])
+                            price2 = self.extract_price(price_matches[1])
+                            if price1 and price2:
+                                current_price = min(price1, price2)
+                                original_price = max(price1, price2)
+                        else:
+                            current_price = self.extract_price(price_matches[0])
+            
+            # Fallback to raw data
+            if not current_price:
+                current_price = self.extract_price(raw_data.get('price') or raw_data.get('current_price'))
+            if not original_price:
+                original_price = self.extract_price(raw_data.get('originalPrice') or raw_data.get('original_price'))
             
             # Calculate discount
             discount_percentage = None
@@ -190,7 +229,16 @@ class DataProcessor:
                 discount_percentage = float(((original_price - current_price) / original_price) * 100)
             
             # Process other fields
-            brand = self.clean_text(raw_data.get('brand'))
+            brand = None
+            # Try to extract brand from metadata description (format: "Name, Brand, SKU")
+            if metadata.get('description'):
+                parts = metadata['description'].split(',')
+                if len(parts) >= 2:
+                    brand = self.clean_text(parts[1])
+            
+            if not brand:
+                brand = self.clean_text(raw_data.get('brand'))
+            
             category = self.clean_text(raw_data.get('category'))
             description = self.clean_text(raw_data.get('description'))
             

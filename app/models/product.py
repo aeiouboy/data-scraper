@@ -62,6 +62,10 @@ class Product(BaseModel):
         if data.get("original_price"):
             data["original_price"] = float(data["original_price"])
             
+        # Convert datetime to ISO format string
+        if data.get("scraped_at"):
+            data["scraped_at"] = data["scraped_at"].isoformat()
+            
         # Convert lists and dicts to JSON-compatible format
         data["features"] = data.get("features", [])
         data["specifications"] = data.get("specifications", {})
@@ -95,6 +99,10 @@ class PriceHistory(BaseModel):
         data["price"] = float(data["price"])
         if data.get("original_price"):
             data["original_price"] = float(data["original_price"])
+            
+        # Convert datetime to ISO format string
+        if data.get("recorded_at"):
+            data["recorded_at"] = data["recorded_at"].isoformat()
             
         return data
 

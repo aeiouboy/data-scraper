@@ -3,6 +3,7 @@ Firecrawl API client with rate limiting and retry logic
 """
 import asyncio
 import httpx
+import re
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 import logging
@@ -76,11 +77,13 @@ class FirecrawlClient:
                     json={
                         "url": url,
                         "pageOptions": {
-                            "includeHtml": False,
-                            "onlyMainContent": True,
+                            "includeHtml": True,
+                            "onlyMainContent": False,
                             "screenshot": False,
-                            "waitFor": 2000  # Wait for page to load
-                        }
+                            "waitFor": 5000,  # Wait longer for page to load
+                            "removeTags": ["script", "style"]
+                        },
+                        "formats": ["markdown", "html", "links"]
                     }
                 )
                 
@@ -91,11 +94,12 @@ class FirecrawlClient:
                     
                     # Log what we got
                     if scraped_data:
-                        logger.debug(f"Raw data keys: {list(scraped_data.keys())}")
-                        # Log first 500 chars of markdown to see content
+                        logger.info(f"Raw data keys: {list(scraped_data.keys())}")
+                        # Log first 1000 chars of markdown to see content
                         markdown = scraped_data.get("markdown", "")
                         if markdown:
-                            logger.debug(f"Markdown preview: {markdown[:500]}...")
+                            logger.info(f"Markdown length: {len(markdown)} chars")
+                            logger.info(f"Markdown preview: {markdown[:1000]}...")
                     
                     return scraped_data
                 elif response.status_code == 429:
@@ -134,8 +138,14 @@ class FirecrawlClient:
                 json={
                     "url": url,
                     "crawlerOptions": {
-                        "includes": ["/product/", "/p/"],  # HomePro product patterns
-                        "maxCrawlPages": max_pages
+                        "includes": ["/p/"],  # HomePro uses /p/ pattern
+                        "maxCrawlPages": max_pages,
+                        "waitFor": 5000  # Wait for JS
+                    },
+                    "pageOptions": {
+                        "includeHtml": True,
+                        "onlyMainContent": False,
+                        "removeTags": ["script", "style"]
                     }
                 }
             )
@@ -178,11 +188,57 @@ class FirecrawlClient:
                             if isinstance(item, dict):
                                 # Log the first item to see structure
                                 if not urls:
-                                    logger.debug(f"Sample item structure: {list(item.keys())}")
-                                # Try different possible keys
-                                url = item.get("url") or item.get("sourceUrl") or item.get("link")
+                                    logger.info(f"Sample item structure: {list(item.keys())}")
+                                    if "metadata" in item:
+                                        logger.info(f"Metadata keys: {list(item['metadata'].keys())}")
+                                    if "linksOnPage" in item:
+                                        logger.info(f"Number of links: {len(item['linksOnPage'])}")
+                                        # Log first few links
+                                        for i, link in enumerate(item['linksOnPage'][:5]):
+                                            logger.info(f"Sample link {i}: {link}")
+                                
+                                # Try to get URL from metadata
+                                metadata = item.get("metadata", {})
+                                url = metadata.get("sourceURL") or metadata.get("url") or item.get("url") or item.get("sourceUrl")
+                                
                                 if url:
                                     urls.append(url)
+                                    logger.info(f"Found URL from metadata: {url}")
+                                    
+                                # Also extract links from linksOnPage
+                                links = item.get("linksOnPage", [])
+                                product_links = []
+                                
+                                for link in links:
+                                    if isinstance(link, str):
+                                        # HomePro uses /p/[number] pattern for products
+                                        if '/p/' in link:
+                                            if link.startswith('http'):
+                                                product_links.append(link)
+                                            elif link.startswith('/'):
+                                                product_links.append(f"https://www.homepro.co.th{link}")
+                                
+                                if product_links:
+                                    logger.info(f"Found {len(product_links)} product links from linksOnPage")
+                                    urls.extend(product_links)
+                                
+                                # Also check HTML content for product links
+                                html_content = item.get("html", "")
+                                if html_content:
+                                    # Extract product links from HTML
+                                    html_product_links = re.findall(r'href=["\']([^"\']*?/p/\d+[^"\']*?)["\']', html_content)
+                                    for link in html_product_links:
+                                        if link.startswith('http'):
+                                            if link not in urls:
+                                                urls.append(link)
+                                        elif link.startswith('/'):
+                                            full_link = f"https://www.homepro.co.th{link}"
+                                            if full_link not in urls:
+                                                urls.append(full_link)
+                                    
+                                    if html_product_links:
+                                        logger.info(f"Found {len(html_product_links)} additional product links from HTML")
+                                            
                             elif isinstance(item, str):
                                 urls.append(item)
                         
