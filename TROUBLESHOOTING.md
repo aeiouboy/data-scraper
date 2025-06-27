@@ -9,9 +9,13 @@
 **Solution**:
 ```bash
 cd "/Users/chongraktanaka/Documents/Project/ris data scrap"
-source venv/bin/activate
+source venv/bin/activate  # YOU MUST RUN THIS FIRST!
 python3 scrape.py [command]
 ```
+
+**How to verify virtual environment is active**:
+- Look for `(venv)` at the start of your terminal prompt
+- Run `which python3` - it should show `.../venv/bin/python3`
 
 ### 2. zsh: command not found: python
 

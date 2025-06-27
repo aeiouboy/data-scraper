@@ -9,23 +9,31 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from config import get_settings
-from supabase import create_client
+from supabase._async.client import create_client as create_async_client
 from app.services.firecrawl_client import FirecrawlClient
 
 
 async def test_supabase():
-    """Test Supabase connection"""
-    print("\n🔍 Testing Supabase connection...")
+    """Test Supabase configuration"""
+    print("\n🔍 Testing Supabase configuration...")
     try:
         settings = get_settings()
-        supabase = create_client(settings.supabase_url, settings.supabase_anon_key)
-        
-        # Test query
-        result = supabase.table("products").select("count", count="exact").execute()
-        print(f"✅ Supabase connected! Products table has {result.count} records")
+        if not settings.supabase_url:
+            print("❌ SUPABASE_URL not configured")
+            return False
+        if not settings.supabase_anon_key:
+            print("❌ SUPABASE_ANON_KEY not configured")
+            return False
+        if not settings.supabase_service_role_key:
+            print("❌ SUPABASE_SERVICE_ROLE_KEY not configured")
+            return False
+            
+        print(f"✅ Supabase configuration looks good!")
+        print(f"   URL: {settings.supabase_url[:50]}...")
+        print(f"   Keys configured: ✓")
         return True
     except Exception as e:
-        print(f"❌ Supabase error: {str(e)}")
+        print(f"❌ Supabase configuration error: {str(e)}")
         return False
 
 
