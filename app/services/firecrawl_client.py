@@ -13,19 +13,27 @@ logger = logging.getLogger(__name__)
 
 
 class RateLimiter:
-    """Simple rate limiter for API calls"""
+    """Enhanced rate limiter for API calls with adaptive behavior"""
     
     def __init__(self, calls_per_minute: int = 30):
         self.calls_per_minute = calls_per_minute
         self.calls = []
         self.lock = asyncio.Lock()
+        self.consecutive_errors = 0
+        self.adaptive_delay = 0
     
     async def acquire(self):
-        """Wait if necessary to respect rate limits"""
+        """Wait if necessary to respect rate limits with adaptive behavior"""
         async with self.lock:
             now = datetime.now()
             # Remove calls older than 1 minute
             self.calls = [call for call in self.calls if now - call < timedelta(minutes=1)]
+            
+            # Apply adaptive delay for error recovery
+            if self.adaptive_delay > 0:
+                logger.info(f"Adaptive delay: {self.adaptive_delay:.1f}s (due to {self.consecutive_errors} consecutive errors)")
+                await asyncio.sleep(self.adaptive_delay)
+                self.adaptive_delay = max(0, self.adaptive_delay - 1)  # Gradually reduce
             
             if len(self.calls) >= self.calls_per_minute:
                 # Wait until the oldest call is 1 minute old
@@ -36,6 +44,20 @@ class RateLimiter:
                     self.calls.pop(0)
             
             self.calls.append(now)
+    
+    def on_success(self):
+        """Called when a request succeeds"""
+        if self.consecutive_errors > 0:
+            logger.info(f"Request succeeded, resetting error count from {self.consecutive_errors}")
+        self.consecutive_errors = 0
+        self.adaptive_delay = 0
+    
+    def on_error(self):
+        """Called when a request fails"""
+        self.consecutive_errors += 1
+        # Exponential backoff: 2^errors seconds, max 30 seconds
+        self.adaptive_delay = min(30, 2 ** min(self.consecutive_errors, 5))
+        logger.warning(f"Request failed, consecutive errors: {self.consecutive_errors}, adaptive delay: {self.adaptive_delay}s")
 
 
 class FirecrawlClient:
@@ -89,17 +111,17 @@ class FirecrawlClient:
                 
                 if response.status_code == 200:
                     data = response.json()
+                    self.rate_limiter.on_success()  # Reset error tracking
                     logger.info(f"Successfully scraped: {url}")
                     scraped_data = data.get("data", {})
                     
                     # Log what we got
                     if scraped_data:
-                        logger.info(f"Raw data keys: {list(scraped_data.keys())}")
+                        logger.debug(f"Raw data keys: {list(scraped_data.keys())}")
                         # Log first 1000 chars of markdown to see content
                         markdown = scraped_data.get("markdown", "")
                         if markdown:
-                            logger.info(f"Markdown length: {len(markdown)} chars")
-                            logger.info(f"Markdown preview: {markdown[:1000]}...")
+                            logger.debug(f"Markdown length: {len(markdown)} chars")
                     
                     return scraped_data
                 elif response.status_code == 429:
@@ -108,9 +130,11 @@ class FirecrawlClient:
                     logger.warning(f"Rate limit hit, waiting {wait_time}s")
                     await asyncio.sleep(wait_time)
                 else:
+                    self.rate_limiter.on_error()  # Track error for adaptive behavior
                     logger.error(f"Scrape failed: {response.status_code} - {response.text}")
                     
             except Exception as e:
+                self.rate_limiter.on_error()  # Track error for adaptive behavior
                 logger.error(f"Scrape error attempt {attempt + 1}: {str(e)}")
                 if attempt < retry_count - 1:
                     await asyncio.sleep(2 ** attempt)  # Exponential backoff

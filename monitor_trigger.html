@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Category Monitor Trigger</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        #result { margin-top: 20px; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>Category Monitoring Control Panel</h1>
+    
+    <h2>Trigger Monitoring</h2>
+    <button onclick="monitorAll()">Monitor All Retailers</button>
+    <button onclick="monitorHP()">Monitor HomePro Only</button>
+    
+    <h2>View Status</h2>
+    <button onclick="getChanges()">Get Recent Changes</button>
+    <button onclick="getHealth('HP')">HomePro Health</button>
+    
+    <div id="result"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api/categories';
+        
+        async function monitorAll() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Starting monitoring for all retailers...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/monitor`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const data = await response.json();
+                result.innerHTML = `<span class="success">✅ ${data.message}</span>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function monitorHP() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Starting monitoring for HomePro...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/monitor?retailer_code=HP`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const data = await response.json();
+                result.innerHTML = `<span class="success">✅ ${data.message}</span>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function getChanges() {
+            try {
+                const response = await fetch(`${API_BASE}/changes?days=7`);
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>Recent Changes (7 days)</h3>
+                    <p>Total changes: ${data.total_changes}</p>
+                    <pre>${JSON.stringify(data.changes, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function getHealth(retailerCode) {
+            try {
+                const response = await fetch(`${API_BASE}/health/${retailerCode}`);
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>${retailerCode} Health</h3>
+                    <p>Health Score: ${data.health_score}/100</p>
+                    <p>Total Categories: ${data.total_categories}</p>
+                    <p>Active Categories: ${data.active_categories}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

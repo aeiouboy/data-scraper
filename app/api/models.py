@@ -10,6 +10,7 @@ from decimal import Decimal
 class ProductSearchRequest(BaseModel):
     """Product search request"""
     query: Optional[str] = None
+    retailer_code: Optional[str] = None
     brands: Optional[List[str]] = None
     categories: Optional[List[str]] = None
     min_price: Optional[float] = None
@@ -57,8 +58,11 @@ class ScrapeJobRequest(BaseModel):
     job_type: str = Field(pattern="^(product|category|search)$")
     target_url: Optional[str] = None
     urls: Optional[List[str]] = None
-    max_pages: Optional[int] = Field(default=5, ge=1, le=50)
+    max_pages: Optional[int] = Field(default=5, ge=1, le=200)
     max_concurrent: Optional[int] = Field(default=5, ge=1, le=10)
+    retailer_code: Optional[str] = Field(None, description="Retailer code (HP, TWD, GH, etc)")
+    category_code: Optional[str] = Field(None, description="Category code for targeted scraping")
+    priority: Optional[str] = Field(default="normal", pattern="^(low|normal|high)$")
 
 
 class ScrapeJobResponse(BaseModel):
@@ -111,3 +115,100 @@ class ConfigUpdateRequest(BaseModel):
     max_concurrent_jobs: Optional[int] = Field(None, ge=1, le=10)
     default_max_pages: Optional[int] = Field(None, ge=1, le=100)
     rate_limit_delay: Optional[int] = Field(None, ge=1, le=60)
+
+
+class MessageResponse(BaseModel):
+    """Simple message response"""
+    message: str
+
+
+class RetailerResponse(BaseModel):
+    """Retailer configuration response"""
+    id: str
+    code: str
+    name: str
+    base_url: str
+    market_position: str
+    estimated_products: int
+    rate_limit_delay: float
+    max_concurrent: int
+    focus_categories: List[str]
+    price_volatility: str
+    is_active: bool
+
+
+class RetailerSummaryResponse(BaseModel):
+    """Retailer summary with product statistics"""
+    code: str
+    name: str
+    market_position: str
+    actual_products: int
+    in_stock_products: int
+    priced_products: int
+    avg_price: float
+    min_price: float
+    max_price: float
+    ultra_critical_count: int
+    high_value_count: int
+    standard_count: int
+    low_priority_count: int
+    category_coverage_percentage: float
+    brand_coverage_percentage: float
+    last_scraped_at: Optional[str]
+
+
+class RetailerStatsResponse(BaseModel):
+    """Detailed retailer statistics"""
+    retailer_code: str
+    retailer_name: str
+    total_products: int
+    in_stock_products: int
+    average_price: float
+    unique_categories: int
+    unique_brands: int
+    price_distribution: Dict[str, int]
+    top_categories: List[Dict[str, Any]]
+
+
+class RetailerCategoryResponse(BaseModel):
+    """Retailer category information"""
+    code: str
+    name: str
+    name_th: str
+    url: str
+    estimated_products: Optional[int] = None
+    actual_products: Optional[int] = None
+    last_scraped: Optional[str] = None
+
+
+class HealthMetricsResponse(BaseModel):
+    """System health metrics"""
+    overall_health: str  # 'healthy', 'warning', 'critical'
+    success_rate_24h: float
+    success_rate_7d: float
+    avg_response_time: float
+    total_jobs_24h: int
+    failed_jobs_24h: int
+    active_jobs: int
+    queue_size: int
+    last_updated: str
+
+
+class RetailerHealthResponse(BaseModel):
+    """Individual retailer health status"""
+    retailer_code: str
+    retailer_name: str
+    status: str  # 'healthy', 'warning', 'critical', 'offline'
+    success_rate: float
+    avg_response_time: float
+    last_successful_scrape: Optional[str] = None
+    error_count_24h: int
+    products_scraped_24h: int
+
+
+class JobMetricsResponse(BaseModel):
+    """Hourly job metrics for charts"""
+    hour: str
+    successful: int
+    failed: int
+    avg_duration: float

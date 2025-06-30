@@ -15,7 +15,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "app.api.main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8001,  # Changed to 8001 to avoid conflict with OMS project
         reload=True,
         log_level="info"
     )

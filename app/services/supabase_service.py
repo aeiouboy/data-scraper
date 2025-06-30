@@ -6,7 +6,6 @@ from datetime import datetime
 from decimal import Decimal
 import logging
 from supabase import create_client, Client
-from supabase._async.client import create_client as create_async_client, AsyncClient
 from config import get_settings
 from app.models.product import Product, PriceHistory, ScrapeJob
 
@@ -18,16 +17,16 @@ class SupabaseService:
     
     def __init__(self):
         settings = get_settings()
-        self.client: AsyncClient = create_async_client(
+        self.client: Client = create_client(
             settings.supabase_url,
-            settings.supabase_service_role_key  # Use service role for write operations
+            settings.supabase_service_role_key
         )
     
     # Product operations
     async def get_product_by_sku(self, sku: str) -> Optional[Dict[str, Any]]:
         """Get product by SKU"""
         try:
-            result = await self.client.table('products').select('*').eq('sku', sku).execute()
+            result = self.client.table('products').select('*').eq('sku', sku).execute()
             return result.data[0] if result.data else None
         except Exception as e:
             logger.error(f"Error fetching product {sku}: {str(e)}")
@@ -43,7 +42,7 @@ class SupabaseService:
             product_data = product.to_supabase_dict()
             
             # Upsert product
-            result = await self.client.table('products').upsert(
+            result = self.client.table('products').upsert(
                 product_data,
                 on_conflict='sku'
             ).execute()
@@ -97,7 +96,7 @@ class SupabaseService:
                 discount_percentage=discount_percentage
             )
             
-            result = await self.client.table('price_history').insert(
+            result = self.client.table('price_history').insert(
                 history.to_supabase_dict()
             ).execute()
             
@@ -114,7 +113,7 @@ class SupabaseService:
     ) -> List[Dict[str, Any]]:
         """Get price history for a product"""
         try:
-            result = await self.client.table('price_history')\
+            result = self.client.table('price_history')\
                 .select('*')\
                 .eq('product_id', product_id)\
                 .order('recorded_at', desc=True)\
@@ -141,7 +140,7 @@ class SupabaseService:
                 status='pending'
             )
             
-            result = await self.client.table('scrape_jobs').insert(
+            result = self.client.table('scrape_jobs').insert(
                 job.model_dump(exclude={'id', 'created_at'})
             ).execute()
             
@@ -164,7 +163,7 @@ class SupabaseService:
             elif updates.get('status') in ['completed', 'failed'] and 'completed_at' not in updates:
                 updates['completed_at'] = datetime.now().isoformat()
             
-            result = await self.client.table('scrape_jobs')\
+            result = self.client.table('scrape_jobs')\
                 .update(updates)\
                 .eq('id', job_id)\
                 .execute()
@@ -178,7 +177,7 @@ class SupabaseService:
     async def get_scrape_job(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Get scrape job by ID"""
         try:
-            result = await self.client.table('scrape_jobs')\
+            result = self.client.table('scrape_jobs')\
                 .select('*')\
                 .eq('id', job_id)\
                 .single()\
@@ -202,7 +201,7 @@ class SupabaseService:
             if status:
                 query = query.eq('status', status)
             
-            result = await query\
+            result = query\
                 .order('created_at', desc=True)\
                 .limit(limit)\
                 .execute()
@@ -217,7 +216,7 @@ class SupabaseService:
     async def get_product_stats(self) -> Optional[Dict[str, Any]]:
         """Get product statistics"""
         try:
-            result = await self.client.table('product_stats').select('*').execute()
+            result = self.client.table('product_stats').select('*').execute()
             return result.data[0] if result.data else None
         except Exception as e:
             logger.error(f"Error fetching product stats: {str(e)}")
@@ -226,7 +225,7 @@ class SupabaseService:
     async def get_daily_scrape_stats(self, days: int = 7) -> List[Dict[str, Any]]:
         """Get daily scraping statistics"""
         try:
-            result = await self.client.table('daily_scrape_stats')\
+            result = self.client.table('daily_scrape_stats')\
                 .select('*')\
                 .limit(days)\
                 .execute()
@@ -259,6 +258,9 @@ class SupabaseService:
             
             # Apply filters
             if filters:
+                if filters.get('retailer_code'):
+                    query_builder = query_builder.eq('retailer_code', filters['retailer_code'])
+                
                 if filters.get('brands'):
                     query_builder = query_builder.in_('brand', filters['brands'])
                 
@@ -286,7 +288,7 @@ class SupabaseService:
             query_builder = query_builder.range(offset, offset + limit - 1)
             
             # Execute query
-            result = await query_builder.execute()
+            result = query_builder.execute()
             
             return {
                 'products': result.data,
@@ -300,7 +302,7 @@ class SupabaseService:
     async def get_product_by_id(self, product_id: str) -> Optional[Dict[str, Any]]:
         """Get product by ID"""
         try:
-            result = await self.client.table('products')\
+            result = self.client.table('products')\
                 .select('*')\
                 .eq('id', product_id)\
                 .single()\
@@ -312,14 +314,22 @@ class SupabaseService:
             logger.error(f"Error fetching product by ID: {str(e)}")
             return None
     
-    async def get_all_brands(self) -> List[str]:
-        """Get all unique brands"""
+    async def get_all_brands(self, retailer_code: Optional[str] = None) -> List[str]:
+        """Get all unique brands, optionally filtered by retailer"""
         try:
-            result = await self.client.table('products')\
-                .select('brand')\
-                .not_('brand', 'is', None)\
-                .execute()
+            query = self.client.table('products').select('brand')
             
+            # Apply retailer filter if provided
+            if retailer_code:
+                query = query.eq('retailer_code', retailer_code)
+            
+            # Filter out null brands
+            query = query.not_('brand', 'is', None)
+            
+            # Execute query
+            result = query.execute()
+            
+            # Extract unique brands
             brands = list(set(item['brand'] for item in result.data if item['brand']))
             return sorted(brands)
             
@@ -327,14 +337,22 @@ class SupabaseService:
             logger.error(f"Error fetching brands: {str(e)}")
             return []
     
-    async def get_categories(self) -> List[str]:
-        """Get all unique categories"""
+    async def get_categories(self, retailer_code: Optional[str] = None) -> List[str]:
+        """Get all unique categories, optionally filtered by retailer"""
         try:
-            result = await self.client.table('products')\
-                .select('category')\
-                .not_('category', 'is', None)\
-                .execute()
+            query = self.client.table('products').select('category')
             
+            # Apply retailer filter if provided
+            if retailer_code:
+                query = query.eq('retailer_code', retailer_code)
+            
+            # Filter out null categories
+            query = query.not_('category', 'is', None)
+            
+            # Execute query
+            result = query.execute()
+            
+            # Extract unique categories
             categories = list(set(item['category'] for item in result.data if item['category']))
             return sorted(categories)
             

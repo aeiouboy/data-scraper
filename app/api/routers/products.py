@@ -38,6 +38,8 @@ async def search_products(
     try:
         # Build filters
         filters = {}
+        if request.retailer_code:
+            filters['retailer_code'] = request.retailer_code
         if request.brands:
             filters['brands'] = request.brands
         if request.categories:
@@ -160,11 +162,12 @@ async def get_price_history(
 
 @router.get("/filters/brands")
 async def get_brands(
+    retailer_code: Optional[str] = Query(None, description="Filter by retailer code"),
     supabase: SupabaseService = Depends(get_supabase)
 ):
-    """Get all unique brands"""
+    """Get all unique brands, optionally filtered by retailer"""
     try:
-        brands = await supabase.get_all_brands()
+        brands = await supabase.get_all_brands(retailer_code=retailer_code)
         return {"brands": brands}
         
     except Exception as e:
@@ -174,11 +177,12 @@ async def get_brands(
 
 @router.get("/filters/categories")
 async def get_categories(
+    retailer_code: Optional[str] = Query(None, description="Filter by retailer code"),
     supabase: SupabaseService = Depends(get_supabase)
 ):
-    """Get all categories"""
+    """Get all categories, optionally filtered by retailer"""
     try:
-        categories = await supabase.get_categories()
+        categories = await supabase.get_categories(retailer_code=retailer_code)
         return {"categories": categories}
         
     except Exception as e:
@@ -193,44 +197,80 @@ async def rescrape_product(
 ):
     """Trigger rescrape of a single product"""
     try:
-        # Get product URL
+        # Get product details
         product = await supabase.get_product_by_id(product_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         
-        # Import scraper
-        from app.core.scraper import HomeProScraper
+        # Import multi-retailer manager
+        from app.core.multi_retailer_manager import MultiRetailerManager
+        from app.config.retailers import retailer_manager
+        
+        # Get the appropriate scraper for this retailer
+        retailer_code = product.get('retailer_code')
+        if not retailer_code:
+            raise HTTPException(status_code=400, detail="Product missing retailer code")
+            
+        retailer_config = retailer_manager.get_retailer(retailer_code)
+        if not retailer_config:
+            raise HTTPException(status_code=400, detail=f"Unknown retailer: {retailer_code}")
         
         # Create scrape job
         job = await supabase.create_scrape_job(
-            job_type='product',
+            job_type='product_rescrape',
             target_url=product['url']
         )
         
-        # Trigger scrape asynchronously
-        # In production, this would be sent to a background queue
-        scraper = HomeProScraper()
-        result = await scraper.scrape_product(product['url'])
+        # Update job with retailer info
+        await supabase.update_scrape_job(job['id'], {
+            'retailer_code': retailer_code,
+            'status': 'running'
+        })
         
-        # Update job status
-        if result:
+        # Initialize multi-retailer manager
+        manager = MultiRetailerManager()
+        
+        # Scrape the single product
+        try:
+            scraped_products = await manager.scrape_single_product(
+                retailer_code=retailer_code,
+                product_url=product['url']
+            )
+            
+            success = len(scraped_products) > 0
+            
+            # Update job status
             await supabase.update_scrape_job(job['id'], {
-                'status': 'completed',
-                'success_items': 1,
+                'status': 'completed' if success else 'failed',
+                'success_items': 1 if success else 0,
+                'failed_items': 0 if success else 1,
                 'processed_items': 1
             })
-        else:
+            
+            return {
+                "message": "Rescrape completed" if success else "Rescrape failed",
+                "job_id": job['id'],
+                "status": "completed" if success else "failed",
+                "retailer": retailer_config.name
+            }
+            
+        except Exception as scrape_error:
+            logger.error(f"Scraping error for {retailer_code}: {str(scrape_error)}")
+            
+            # Update job as failed
             await supabase.update_scrape_job(job['id'], {
                 'status': 'failed',
                 'failed_items': 1,
-                'processed_items': 1
+                'processed_items': 1,
+                'error_message': str(scrape_error)
             })
-        
-        return {
-            "message": "Rescrape triggered",
-            "job_id": job['id'],
-            "status": "completed" if result else "failed"
-        }
+            
+            return {
+                "message": "Rescrape failed",
+                "job_id": job['id'],
+                "status": "failed",
+                "error": str(scrape_error)
+            }
         
     except HTTPException:
         raise

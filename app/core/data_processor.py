@@ -147,6 +147,87 @@ class DataProcessor:
         
         return "unknown"
     
+    def _extract_category(self, url: str, markdown: str, raw_data: Dict[str, Any]) -> Optional[str]:
+        """Extract category from URL path, markdown, or raw data"""
+        # Try raw data first
+        category = raw_data.get('category')
+        if category:
+            return self.clean_text(category)
+        
+        # Extract from URL path (e.g., homepro.co.th/c/LIG -> Lighting)
+        url_match = re.search(r'/c/([A-Z]{3})', url)
+        if url_match:
+            category_code = url_match.group(1)
+            # Map category codes to readable names
+            category_mapping = {
+                'LIG': 'โคมไฟและหลอดไฟ',
+                'PAI': 'สีและอุปกรณ์ทาสี', 
+                'BAT': 'ห้องน้ำ',
+                'PLU': 'งานระบบประปา',
+                'KIT': 'ห้องครัวและอุปกรณ์',
+                'SMA': 'เครื่องใช้ไฟฟ้าขนาดเล็ก',
+                'HHP': 'จัดเก็บและของใช้ในบ้าน',
+                'TVA': 'ทีวี เครื่องเสียง เกม',
+                'FLO': 'วัสดุปูพื้นและผนัง',
+                'FUR': 'เฟอร์นิเจอร์และของแต่งบ้าน',
+                'APP': 'เครื่องใช้ไฟฟ้า',
+                'CON': 'วัสดุก่อสร้าง',
+                'ELT': 'ระบบไฟฟ้าและความปลอดภัย',
+                'DOW': 'ประตูและหน้าต่าง',
+                'TOO': 'เครื่องมือและฮาร์ดแวร์',
+                'OUT': 'เฟอร์นิเจอร์นอกบ้านและสวน',
+                'BED': 'ห้องนอนและเครื่องนอน',
+                'SPO': 'กีฬาและการเดินทาง',
+                'BEA': 'ความงามและดูแลตัว',
+                'MOM': 'แม่และเด็ก',
+                'HEA': 'สุขภาพ',
+                'PET': 'อุปกรณ์สัตว์เลี้ยง',
+                'ATM': 'ยานยนต์'
+            }
+            return category_mapping.get(category_code, category_code)
+        
+        # Try to extract from markdown breadcrumbs
+        if markdown:
+            # Look for breadcrumb pattern
+            breadcrumb_match = re.search(r'หน้าแรก\s*>\s*([^>]+)', markdown)
+            if breadcrumb_match:
+                return self.clean_text(breadcrumb_match.group(1))
+            
+            # Look for category in title or headings
+            category_patterns = [
+                r'หมวดหมู่[:\s]*([^\n]+)',
+                r'Category[:\s]*([^\n]+)',
+                r'ประเภทสินค้า[:\s]*([^\n]+)'
+            ]
+            
+            for pattern in category_patterns:
+                match = re.search(pattern, markdown, re.IGNORECASE)
+                if match:
+                    return self.clean_text(match.group(1))
+        
+        return None
+    
+    def _extract_availability(self, markdown: str, raw_data: Dict[str, Any]) -> str:
+        """Extract availability status from markdown or raw data"""
+        # Check raw data first
+        availability = raw_data.get('availability') or raw_data.get('stock_status')
+        if availability:
+            return self.determine_availability(availability)
+        
+        # Check markdown for Thai availability indicators
+        if markdown:
+            # Look for stock status patterns in Thai
+            if re.search(r'มีสินค้า|พร้อมส่ง|สินค้าพร้อม|In Stock', markdown, re.IGNORECASE):
+                return "in_stock"
+            elif re.search(r'หมดสต็อก|สินค้าหมด|หมด|Out of Stock|ไม่มีสินค้า', markdown, re.IGNORECASE):
+                return "out_of_stock"
+            elif re.search(r'สั่งซื้อได้|สั่งล่วงหน้า|Pre-order|Backorder', markdown, re.IGNORECASE):
+                return "preorder"
+            elif re.search(r'ใกล้หมด|Limited Stock|จำนวนจำกัด', markdown, re.IGNORECASE):
+                return "limited_stock"
+        
+        return "unknown"
+    
     def process_product_data(self, raw_data: Dict[str, Any], url: str) -> Optional[Product]:
         """
         Process raw scraped data into Product model
@@ -258,7 +339,8 @@ class DataProcessor:
             if not brand:
                 brand = self.clean_text(raw_data.get('brand'))
             
-            category = self.clean_text(raw_data.get('category'))
+            # Extract category from URL path or markdown content
+            category = self._extract_category(url, markdown, raw_data)
             description = self.clean_text(raw_data.get('description'))
             
             # Process features
@@ -276,10 +358,8 @@ class DataProcessor:
             # Process images
             images = self.process_images(raw_data.get('images', []))
             
-            # Determine availability
-            availability = self.determine_availability(
-                raw_data.get('availability') or raw_data.get('stock_status')
-            )
+            # Determine availability from markdown content
+            availability = self._extract_availability(markdown, raw_data)
             
             # Create Product instance
             product = Product(

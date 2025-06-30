@@ -25,30 +25,33 @@ async def get_dashboard_analytics(
     try:
         # Try to get basic product counts
         try:
-            products_result = await supabase.client.table('products').select('id', count='exact').execute()
+            products_result = supabase.client.table('products').select('id', count='exact').execute()
             total_products = products_result.count or 0
-        except:
+        except Exception as e:
+            logger.warning(f"Failed to get product count: {e}")
             total_products = 0
         
         # Try to get products with prices
         try:
-            price_result = await supabase.client.table('products')\
-                .select('current_price')\
+            price_result = supabase.client.table('products')\
+                .select('current_price, discount_percentage')\
                 .not_('current_price', 'is', None)\
                 .execute()
             
             prices = [float(p['current_price']) for p in price_result.data if p.get('current_price')]
             avg_price = sum(prices) / len(prices) if prices else 0
             products_on_sale = len([p for p in price_result.data if p.get('discount_percentage', 0) > 0])
-        except:
+        except Exception as e:
+            logger.warning(f"Failed to get price data: {e}")
             avg_price = 0
             products_on_sale = 0
         
         # Try to get scrape jobs
         try:
-            jobs_result = await supabase.client.table('scrape_jobs').select('id', count='exact').execute()
+            jobs_result = supabase.client.table('scrape_jobs').select('id', count='exact').execute()
             total_jobs = jobs_result.count or 0
-        except:
+        except Exception as e:
+            logger.warning(f"Failed to get job count: {e}")
             total_jobs = 0
         
         # Mock data for now - replace with real data when database is populated

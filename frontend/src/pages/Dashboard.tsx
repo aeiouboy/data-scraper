@@ -1,195 +1,452 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
+  Box,
   Grid,
   Paper,
   Typography,
-  Box,
   Card,
   CardContent,
   CircularProgress,
+  Chip,
   Alert,
+  Avatar,
+  Stack,
+  Divider,
+  LinearProgress,
+  Fade,
+  Zoom,
 } from '@mui/material';
 import {
-  Inventory as ProductIcon,
-  TrendingUp as TrendingIcon,
-  CloudDownload as ScrapingIcon,
+  Inventory as InventoryIcon,
+  Store as StoreIcon,
+  Category as CategoryIcon,
+  CompareArrows as CompareIcon,
+  Savings as SavingsIcon,
   AttachMoney as PriceIcon,
 } from '@mui/icons-material';
-import { analyticsApi } from '../services/api';
+import { analyticsApi, retailerApi, priceComparisonApi } from '../services/api';
+import { useRetailer } from '../contexts/RetailerContext';
+import RetailerSelector from '../components/RetailerSelector';
+import LoadingWrapper from '../components/LoadingWrapper';
+
+const retailerColors: Record<string, string> = {
+  'HP': '#FF6B35',   // HomePro Orange
+  'TWD': '#1976D2',  // Thai Watsadu Blue
+  'GH': '#4CAF50',   // Global House Green
+  'DH': '#FF9800',   // DoHome Orange
+  'BT': '#9C27B0',   // Boonthavorn Purple
+  'MH': '#607D8B',   // MegaHome Blue Grey
+};
 
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
   color: string;
+  subtitle?: string;
+  progress?: number;
+  delay?: number;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => (
-  <Card>
-    <CardContent>
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Box>
-          <Typography color="textSecondary" gutterBottom>
-            {title}
-          </Typography>
-          <Typography variant="h4">
-            {value}
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            backgroundColor: color,
-            borderRadius: '50%',
-            width: 56,
-            height: 56,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-          }}
-        >
-          {icon}
-        </Box>
-      </Box>
-    </CardContent>
-  </Card>
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, subtitle, progress, delay = 0 }) => (
+  <Zoom in timeout={300 + delay}>
+    <Card sx={{ height: '100%' }}>
+      <CardContent>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+          <Box>
+            <Typography color="textSecondary" gutterBottom variant="body2">
+              {title}
+            </Typography>
+            <Typography variant="h5" component="div" fontWeight="bold">
+              {value}
+            </Typography>
+            {subtitle && (
+              <Typography variant="body2" color="text.secondary">
+                {subtitle}
+              </Typography>
+            )}
+            {progress !== undefined && (
+              <Box sx={{ mt: 1 }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={progress}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    bgcolor: 'grey.200',
+                    '& .MuiLinearProgress-bar': {
+                      bgcolor: color,
+                    },
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {progress.toFixed(1)}% coverage
+                </Typography>
+              </Box>
+            )}
+          </Box>
+          <Avatar sx={{ bgcolor: color, width: 48, height: 48 }}>
+            {icon}
+          </Avatar>
+        </Stack>
+      </CardContent>
+    </Card>
+  </Zoom>
 );
 
 export default function Dashboard() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['analytics', 'dashboard'],
+  const { 
+    selectedRetailer, 
+    multiRetailerMode, 
+    selectedRetailers, 
+    retailerStats,
+    getRetailerStats,
+    isLoadingRetailers,
+    isLoadingStats
+  } = useRetailer();
+
+  // Fetch dashboard data based on mode
+  const { isLoading: loadingDashboard } = useQuery({
+    queryKey: ['dashboard', multiRetailerMode ? 'multi' : selectedRetailer],
     queryFn: async () => {
-      const response = await analyticsApi.getDashboard();
-      return response.data;
+      if (multiRetailerMode) {
+        return await analyticsApi.getMultiRetailerDashboard();
+      } else {
+        return await analyticsApi.getDashboard(selectedRetailer || undefined);
+      }
     },
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  if (isLoading) {
+  // Fetch retailer summary for multi-retailer view
+  const { isLoading: loadingSummary } = useQuery({
+    queryKey: ['retailer-summary'],
+    queryFn: async () => {
+      const response = await retailerApi.getSummary();
+      return response.data;
+    },
+    enabled: multiRetailerMode,
+    refetchInterval: 30000,
+  });
+
+  // Fetch price comparison summary for multi-retailer view
+  const { data: priceComparisonData } = useQuery({
+    queryKey: ['price-comparison-summary'],
+    queryFn: async () => {
+      const response = await priceComparisonApi.getTopSavings(10);
+      return response.data;
+    },
+    enabled: multiRetailerMode && selectedRetailers.length > 1,
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  const isLoading = isLoadingRetailers || isLoadingStats || loadingDashboard || (multiRetailerMode && loadingSummary);
+
+  // Show loading state while retailers are being loaded
+  if (isLoadingRetailers) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
+      <LoadingWrapper loading={true} loadingText="Loading retailers..." minHeight="100vh">
+        <div />
+      </LoadingWrapper>
+    );
+  }
+
+  // Single retailer dashboard
+  if (!multiRetailerMode && selectedRetailer) {
+    const currentRetailerStats = getRetailerStats(selectedRetailer);
+    
+    return (
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Dashboard
+        </Typography>
+
+        <RetailerSelector variant="full" showStats={true} showMultiMode={true} />
+
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" mt={4}>
+            <CircularProgress />
+          </Box>
+        ) : currentRetailerStats ? (
+          <Fade in timeout={500}>
+            <Grid container spacing={3} mt={1}>
+              <Grid item xs={12} sm={6} md={3}>
+                <StatCard
+                  title="Total Products"
+                  value={currentRetailerStats.actual_products?.toLocaleString() || '0'}
+                  icon={<InventoryIcon />}
+                  color={retailerColors[selectedRetailer]}
+                  subtitle={`Est: ${currentRetailerStats.actual_products?.toLocaleString() || '0'}`}
+                  delay={0}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <StatCard
+                  title="In Stock"
+                  value={currentRetailerStats.in_stock_products?.toLocaleString() || '0'}
+                  icon={<StoreIcon />}
+                  color="#4CAF50"
+                  progress={currentRetailerStats.actual_products > 0 ? 
+                    (currentRetailerStats.in_stock_products / currentRetailerStats.actual_products) * 100 : 0}
+                  delay={100}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <StatCard
+                  title="Average Price"
+                  value={`฿${currentRetailerStats.avg_price?.toFixed(0) || '0'}`}
+                  icon={<PriceIcon />}
+                  color="#FF9800"
+                  subtitle={`Range: ฿${currentRetailerStats.min_price?.toFixed(0) || '0'} - ฿${currentRetailerStats.max_price?.toFixed(0) || '0'}`}
+                  delay={200}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <StatCard
+                  title="Category Coverage"
+                  value={`${currentRetailerStats.category_coverage_percentage?.toFixed(1) || '0'}%`}
+                  icon={<CategoryIcon />}
+                  color="#9C27B0"
+                  progress={currentRetailerStats.category_coverage_percentage || 0}
+                  delay={300}
+                />
+              </Grid>
+            </Grid>
+          </Fade>
+        ) : (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            No data available for the selected retailer.
+          </Alert>
+        )}
       </Box>
     );
   }
 
-  if (error) {
-    return (
-      <Alert severity="error">
-        Failed to load dashboard data. Please try again later.
-      </Alert>
-    );
-  }
-
-  const stats = data?.product_stats || {};
-
+  // Multi-retailer dashboard
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Dashboard
+        Multi-Retailer Dashboard
       </Typography>
 
-      <Grid container spacing={3}>
-        {/* Stat Cards */}
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Total Products"
-            value={stats.total_products || 0}
-            icon={<ProductIcon />}
-            color="#3f51b5"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Average Price"
-            value={`฿${stats.avg_price?.toFixed(2) || 0}`}
-            icon={<PriceIcon />}
-            color="#4caf50"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Products on Sale"
-            value={stats.products_on_sale || 0}
-            icon={<TrendingIcon />}
-            color="#ff9800"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Total Brands"
-            value={stats.total_brands || 0}
-            icon={<ScrapingIcon />}
-            color="#f44336"
-          />
-        </Grid>
+      <RetailerSelector variant="full" showStats={true} showMultiMode={true} />
 
-        {/* Charts Section */}
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 2 }}>
+      {isLoading ? (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          {/* Overview Stats */}
+          <Grid container spacing={3} mt={1}>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Total Products"
+                value={retailerStats.reduce((sum, stat) => sum + stat.actual_products, 0).toLocaleString()}
+                icon={<InventoryIcon />}
+                color="#1976D2"
+                subtitle={`Across ${selectedRetailers.length} retailers`}
+                delay={0}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Products In Stock"
+                value={retailerStats.reduce((sum, stat) => sum + stat.in_stock_products, 0).toLocaleString()}
+                icon={<StoreIcon />}
+                color="#4CAF50"
+                subtitle="Available for purchase"
+                delay={100}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Active Retailers"
+                value={selectedRetailers.length}
+                icon={<CompareIcon />}
+                color="#FF9800"
+                subtitle="Being monitored"
+                delay={200}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Potential Savings"
+                value={priceComparisonData?.savings_opportunities ? 
+                  `฿${priceComparisonData.savings_opportunities.slice(0, 10).reduce((sum: number, item: any) => sum + item.savings_amount, 0).toLocaleString()}` : 
+                  '฿0'}
+                icon={<SavingsIcon />}
+                color="#E91E63"
+                subtitle="Top 10 opportunities"
+                delay={300}
+              />
+            </Grid>
+          </Grid>
+
+          {/* Retailer Breakdown */}
+          <Paper sx={{ mt: 3, p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Daily Scraping Activity
+              📊 Retailer Performance Overview
             </Typography>
-            <Box height={300} display="flex" alignItems="center" justifyContent="center">
-              <Typography color="textSecondary">
-                Chart will be implemented here
+            
+            <Grid container spacing={2}>
+              {retailerStats
+                .filter(stat => selectedRetailers.includes(stat.code))
+                .map((stat, index) => (
+                  <Grid item xs={12} md={6} lg={4} key={stat.code}>
+                    <Fade in timeout={300 + index * 100}>
+                      <Card variant="outlined" sx={{ height: '100%' }}>
+                        <CardContent>
+                          <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                            <Avatar
+                              sx={{
+                                bgcolor: retailerColors[stat.code] || '#666',
+                                width: 40,
+                                height: 40,
+                              }}
+                            >
+                              {stat.code}
+                            </Avatar>
+                            <Box flex={1}>
+                              <Typography variant="h6" fontWeight="bold">
+                                {stat.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Market Position: Leading Retailer
+                              </Typography>
+                            </Box>
+                          </Stack>
+
+                          <Divider sx={{ mb: 2 }} />
+
+                          <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                Products
+                              </Typography>
+                              <Typography variant="h6" fontWeight="bold">
+                                {stat.actual_products.toLocaleString()}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                In Stock
+                              </Typography>
+                              <Typography variant="h6" fontWeight="bold" color="success.main">
+                                {stat.in_stock_products.toLocaleString()}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                Avg Price
+                              </Typography>
+                              <Typography variant="h6" fontWeight="bold">
+                                ฿{stat.avg_price?.toFixed(0) || '0'}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                Coverage
+                              </Typography>
+                              <Typography variant="h6" fontWeight="bold">
+                                {stat.category_coverage_percentage?.toFixed(1) || '0'}%
+                              </Typography>
+                            </Grid>
+                          </Grid>
+
+                          {/* Monitoring Tier Distribution */}
+                          <Box mt={2}>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                              Monitoring Tiers
+                            </Typography>
+                            <Stack direction="row" spacing={1} flexWrap="wrap">
+                              <Chip
+                                label={`Ultra: ${stat.ultra_critical_count}`}
+                                size="small"
+                                color="error"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`High: ${stat.high_value_count}`}
+                                size="small"
+                                color="warning"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`Standard: ${stat.standard_count}`}
+                                size="small"
+                                color="info"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`Low: ${stat.low_priority_count}`}
+                                size="small"
+                                color="default"
+                                variant="outlined"
+                              />
+                            </Stack>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Fade>
+                  </Grid>
+                ))}
+            </Grid>
+          </Paper>
+
+          {/* Price Comparison Preview */}
+          {selectedRetailers.length > 1 && priceComparisonData?.savings_opportunities && (
+            <Paper sx={{ mt: 3, p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                💰 Top Savings Opportunities
               </Typography>
-            </Box>
-          </Paper>
-        </Grid>
+              
+              <Grid container spacing={2}>
+                {priceComparisonData.savings_opportunities.slice(0, 6).map((opportunity: any, index: number) => (
+                  <Grid item xs={12} md={6} lg={4} key={index}>
+                    <Zoom in timeout={300 + index * 100}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle2" fontWeight="bold" gutterBottom noWrap>
+                            {opportunity.product_name}
+                          </Typography>
+                          
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                            <Chip label={opportunity.category} size="small" variant="outlined" />
+                            <Typography variant="h6" color="success.main" fontWeight="bold">
+                              ฿{opportunity.savings_amount.toFixed(2)}
+                            </Typography>
+                          </Stack>
 
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Top Brands
-            </Typography>
-            <Box>
-              {data?.brand_distribution?.slice(0, 5).map((brand: any, index: number) => (
-                <Box key={index} display="flex" justifyContent="space-between" py={1}>
-                  <Typography>{brand.brand}</Typography>
-                  <Typography color="textSecondary">{brand.count}</Typography>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
-        </Grid>
+                          <Typography variant="body2" color="text.secondary" mb={1}>
+                            {opportunity.price_range}
+                          </Typography>
 
-        {/* Price Distribution */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Price Distribution
-            </Typography>
-            <Box>
-              {Object.entries(data?.price_distribution || {}).map(([range, count]) => (
-                <Box key={range} display="flex" justifyContent="space-between" py={1}>
-                  <Typography>฿{range}</Typography>
-                  <Typography color="textSecondary">{count as number}</Typography>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* Recent Activity */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Recent Scraping Jobs
-            </Typography>
-            <Box>
-              {data?.daily_stats?.slice(0, 5).map((stat: any, index: number) => (
-                <Box key={index} display="flex" justifyContent="space-between" py={1}>
-                  <Typography>{stat.date}</Typography>
-                  <Typography color={stat.avg_success_rate > 80 ? 'success.main' : 'error.main'}>
-                    {stat.avg_success_rate?.toFixed(1)}% success
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Typography variant="caption" color="text.secondary">
+                              Best at:
+                            </Typography>
+                            <Chip
+                              label={opportunity.best_retailer}
+                              size="small"
+                              sx={{
+                                bgcolor: `${retailerColors[opportunity.best_retailer] || '#666'}15`,
+                                color: retailerColors[opportunity.best_retailer] || '#666',
+                                fontWeight: 'bold',
+                              }}
+                            />
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </Zoom>
+                  </Grid>
+                ))}
+              </Grid>
+            </Paper>
+          )}
+        </>
+      )}
     </Box>
   );
 }

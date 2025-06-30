@@ -14,6 +14,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
+import RetailerSelector from './RetailerSelector';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
@@ -21,6 +22,8 @@ import {
   CloudDownload as ScrapingIcon,
   Analytics as AnalyticsIcon,
   Settings as SettingsIcon,
+  CompareArrows as CompareIcon,
+  Monitor as MonitorIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -32,8 +35,10 @@ interface LayoutProps {
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Products', icon: <InventoryIcon />, path: '/products' },
+  { text: 'Price Comparisons', icon: <CompareIcon />, path: '/price-comparisons' },
   { text: 'Scraping', icon: <ScrapingIcon />, path: '/scraping' },
   { text: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics' },
+  { text: 'Monitoring', icon: <MonitorIcon />, path: '/monitoring' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
@@ -50,10 +55,17 @@ export default function Layout({ children }: LayoutProps) {
     <div>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          HomePro Manager
+          Thai Market Intel
         </Typography>
       </Toolbar>
       <Divider />
+      
+      {/* Retailer Selector in Sidebar */}
+      <Box sx={{ p: 1 }}>
+        <RetailerSelector variant="compact" showStats={false} />
+      </Box>
+      <Divider />
+      
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
@@ -90,7 +102,7 @@ export default function Layout({ children }: LayoutProps) {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            {menuItems.find(item => item.path === location.pathname)?.text || 'HomePro Product Manager'}
+            {menuItems.find(item => item.path === location.pathname)?.text || 'Thai Market Intelligence'}
           </Typography>
         </Toolbar>
       </AppBar>

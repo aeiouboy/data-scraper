@@ -1,0 +1,6 @@
+sku,name,brand,current_price,original_price,discount,url,status
+888155800075,ไดร์เป่าผม KASHIWA รุ่น HR-1800 สีขาว,kashiwa,449.0,898.0,50.0%,https://www.homepro.co.th/p/888155800075,success
+,,,,,,https://www.homepro.co.th/p/1106278,"failed - Cannot send a request, as the client has been closed."
+,,,,,,https://www.homepro.co.th/p/1272109,"failed - Cannot send a request, as the client has been closed."
+,,,,,,https://www.homepro.co.th/p/1269826,"failed - Cannot send a request, as the client has been closed."
+,,,,,,https://www.homepro.co.th/p/1106382,"failed - Cannot send a request, as the client has been closed."

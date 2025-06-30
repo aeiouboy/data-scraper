@@ -8,13 +8,14 @@ from decimal import Decimal
 
 
 class Product(BaseModel):
-    """Product model matching Supabase schema"""
+    """Product model matching Supabase schema - Multi-retailer enhanced"""
     
     id: Optional[str] = None
     sku: str
     name: str
     brand: Optional[str] = None
     category: Optional[str] = None
+    unified_category: Optional[str] = None  # Standardized category across retailers
     current_price: Optional[Decimal] = None
     original_price: Optional[Decimal] = None
     discount_percentage: Optional[float] = None
@@ -24,6 +25,15 @@ class Product(BaseModel):
     availability: str = "unknown"
     images: List[str] = Field(default_factory=list)
     url: str
+    
+    # Multi-retailer fields
+    retailer_code: str = "HP"  # HP, TWD, GH, DH, BT, MH
+    retailer_name: str = "HomePro"
+    retailer_sku: Optional[str] = None  # Retailer-specific SKU
+    product_hash: Optional[str] = None  # For product matching across retailers
+    monitoring_tier: str = "standard"  # ultra_critical, high_value, standard, low_priority
+    
+    # Timestamps
     scraped_at: datetime = Field(default_factory=datetime.now)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -70,6 +80,11 @@ class Product(BaseModel):
         data["features"] = data.get("features", [])
         data["specifications"] = data.get("specifications", {})
         data["images"] = data.get("images", [])
+        
+        # Ensure multi-retailer fields are included
+        data["retailer_code"] = data.get("retailer_code", "HP")
+        data["retailer_name"] = data.get("retailer_name", "HomePro")
+        data["monitoring_tier"] = data.get("monitoring_tier", "standard")
         
         return data
 
@@ -128,6 +143,43 @@ class Category(BaseModel):
         return v.strip()
 
 
+class ProductMatch(BaseModel):
+    """Cross-retailer product matching model"""
+    
+    id: Optional[str] = None
+    master_product_id: str  # Primary product ID
+    matched_product_ids: List[str] = Field(default_factory=list)  # Related products from other retailers
+    match_confidence: float = 0.0  # 0.0-1.0 confidence score
+    match_criteria: Dict[str, Any] = Field(default_factory=dict)  # What criteria were used for matching
+    
+    # Product attributes for matching
+    normalized_name: str
+    normalized_brand: Optional[str] = None
+    unified_category: str
+    key_specifications: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Price comparison data
+    price_range_min: Optional[Decimal] = None
+    price_range_max: Optional[Decimal] = None
+    best_price_retailer: Optional[str] = None
+    price_variance_percentage: Optional[float] = None
+    
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    def to_supabase_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for Supabase insertion"""
+        data = self.model_dump(exclude={"id", "created_at", "updated_at"})
+        
+        # Convert Decimal to float
+        if data.get("price_range_min"):
+            data["price_range_min"] = float(data["price_range_min"])
+        if data.get("price_range_max"):
+            data["price_range_max"] = float(data["price_range_max"])
+            
+        return data
+
+
 class ScrapeJob(BaseModel):
     """Scraping job tracking model"""
     
@@ -135,6 +187,7 @@ class ScrapeJob(BaseModel):
     job_type: str  # "discovery", "product", "category"
     status: str = "pending"  # pending, running, completed, failed
     target_url: Optional[str] = None
+    retailer_code: Optional[str] = None  # HP, TWD, GH, DH, BT, MH
     total_items: int = 0
     processed_items: int = 0
     success_items: int = 0
@@ -142,6 +195,7 @@ class ScrapeJob(BaseModel):
     error_message: Optional[str] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    duration_seconds: Optional[int] = None
     created_at: Optional[datetime] = None
     
     @property
@@ -155,3 +209,21 @@ class ScrapeJob(BaseModel):
     def is_running(self) -> bool:
         """Check if job is still running"""
         return self.status in ["pending", "running"]
+    
+    def to_supabase_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for Supabase insertion"""
+        data = self.model_dump(exclude={"id", "created_at"})
+        
+        # Calculate duration if both timestamps are available
+        if data.get("started_at") and data.get("completed_at") and not data.get("duration_seconds"):
+            started = data["started_at"]
+            completed = data["completed_at"]
+            if isinstance(started, datetime) and isinstance(completed, datetime):
+                data["duration_seconds"] = int((completed - started).total_seconds())
+        
+        # Convert datetime to ISO format string
+        for field in ["started_at", "completed_at"]:
+            if data.get(field) and isinstance(data[field], datetime):
+                data[field] = data[field].isoformat()
+                
+        return data

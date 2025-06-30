@@ -20,14 +20,19 @@ import {
   IconButton,
   LinearProgress,
   Grid,
+  Fade,
+  Container,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import {
   Stop as StopIcon,
   Refresh as RefreshIcon,
   Add as AddIcon,
+  RocketLaunch as RocketLaunchIcon,
 } from '@mui/icons-material';
 import { scrapingApi } from '../services/api';
+import ScrapingWizard from '../components/scraping/ScrapingWizard';
+import JobProgressCard from '../components/scraping/JobProgressCard';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -47,7 +52,9 @@ function TabPanel(props: TabPanelProps) {
 export default function Scraping() {
   const queryClient = useQueryClient();
   const [tabValue, setTabValue] = useState(0);
+  const [openWizard, setOpenWizard] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+  const [wizardMode, setWizardMode] = useState(true); // Toggle between wizard and classic mode
   const [newJobForm, setNewJobForm] = useState({
     job_type: 'category',
     target_url: '',
@@ -78,6 +85,34 @@ export default function Scraping() {
         urls: [],
         max_pages: 5,
       });
+    },
+  });
+
+  // Create batch job mutation for wizard
+  const createBatchJobMutation = useMutation({
+    mutationFn: async (data: any) => {
+      // For now, create individual jobs for each category
+      // In the future, this would be a single batch endpoint
+      const { retailer_code, category_codes, max_pages } = data;
+      const retailer = await queryClient.getQueryData(['retailers']);
+      const categories = getCategoriesForRetailer(retailer_code);
+      
+      const jobs = category_codes.map((categoryCode: string) => {
+        const category = categories.find(c => c.code === categoryCode);
+        return scrapingApi.createJob({
+          job_type: 'category',
+          target_url: category?.url || '',
+          max_pages: max_pages,
+          retailer_code: retailer_code,
+          category_code: categoryCode,
+        });
+      });
+      
+      return Promise.all(jobs);
+    },
+    onSuccess: () => {
+      setOpenWizard(false);
+      queryClient.invalidateQueries({ queryKey: ['scraping-jobs'] });
     },
   });
 
@@ -189,16 +224,31 @@ export default function Scraping() {
   };
 
   return (
-    <Box>
+    <Container maxWidth="xl">
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4">Scraping Jobs</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenDialog(true)}
-        >
-          New Scraping Job
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            startIcon={<RocketLaunchIcon />}
+            onClick={() => setOpenWizard(true)}
+            sx={{
+              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+            }}
+          >
+            Start Scraping
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenDialog(true)}
+          >
+            Classic Mode
+          </Button>
+        </Box>
       </Box>
 
       {/* Stats */}
@@ -300,7 +350,15 @@ export default function Scraping() {
         </TabPanel>
       </Paper>
 
-      {/* Create Job Dialog */}
+      {/* Scraping Wizard */}
+      <ScrapingWizard
+        open={openWizard}
+        onClose={() => setOpenWizard(false)}
+        onSubmit={(jobData) => createBatchJobMutation.mutate(jobData)}
+        isSubmitting={createBatchJobMutation.isPending}
+      />
+
+      {/* Create Job Dialog (Classic Mode) */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Create New Scraping Job</DialogTitle>
         <DialogContent>
@@ -351,7 +409,7 @@ export default function Scraping() {
                   ...newJobForm,
                   max_pages: parseInt(e.target.value) || 5,
                 })}
-                inputProps={{ min: 1, max: 50 }}
+                inputProps={{ min: 1, max: 200 }}
               />
             )}
           </Box>
@@ -367,7 +425,36 @@ export default function Scraping() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
+}
+
+// Temporary function until we have the real API
+function getCategoriesForRetailer(retailerCode: string): any[] {
+  const categoryMap: Record<string, any[]> = {
+    HP: [
+      { code: 'LIG', name: 'Lighting', name_th: 'โคมไฟและหลอดไฟ', url: 'https://www.homepro.co.th/c/LIG', estimated_products: 5000 },
+      { code: 'PAI', name: 'Paint', name_th: 'สีและอุปกรณ์ทาสี', url: 'https://www.homepro.co.th/c/PAI', estimated_products: 3000 },
+      { code: 'FUR', name: 'Furniture', name_th: 'เฟอร์นิเจอร์', url: 'https://www.homepro.co.th/c/FUR', estimated_products: 8000 },
+      { code: 'APP', name: 'Appliances', name_th: 'เครื่องใช้ไฟฟ้า', url: 'https://www.homepro.co.th/c/APP', estimated_products: 6000 },
+      { code: 'KIT', name: 'Kitchen', name_th: 'ห้องครัว', url: 'https://www.homepro.co.th/c/KIT', estimated_products: 4000 },
+      { code: 'BAT', name: 'Bathroom', name_th: 'ห้องน้ำ', url: 'https://www.homepro.co.th/c/BAT', estimated_products: 3500 },
+      { code: 'TOO', name: 'Tools', name_th: 'เครื่องมือ', url: 'https://www.homepro.co.th/c/TOO', estimated_products: 5500 },
+      { code: 'GAR', name: 'Garden', name_th: 'สวน', url: 'https://www.homepro.co.th/c/GAR', estimated_products: 2500 },
+    ],
+    TWD: [
+      { code: 'CON', name: 'Construction Materials', name_th: 'วัสดุก่อสร้าง', url: 'https://www.thaiwatsadu.com/th/c/construction-materials', estimated_products: 15000 },
+      { code: 'TOH', name: 'Tools & Hardware', name_th: 'เครื่องมือและฮาร์ดแวร์', url: 'https://www.thaiwatsadu.com/th/c/tools-hardware', estimated_products: 12000 },
+      { code: 'ELE', name: 'Electrical & Lighting', name_th: 'ไฟฟ้าและแสงสว่าง', url: 'https://www.thaiwatsadu.com/th/c/electrical-lighting', estimated_products: 8000 },
+      { code: 'PLU', name: 'Plumbing & Bathroom', name_th: 'ประปาและห้องน้ำ', url: 'https://www.thaiwatsadu.com/th/c/plumbing-bathroom', estimated_products: 6000 },
+    ],
+    GH: [
+      { code: 'FRN', name: 'Furniture', name_th: 'เฟอร์นิเจอร์', url: 'https://www.globalhouse.co.th/furniture', estimated_products: 25000 },
+      { code: 'DEC', name: 'Home Decor', name_th: 'ของตกแต่งบ้าน', url: 'https://www.globalhouse.co.th/home-decor', estimated_products: 15000 },
+      { code: 'LIV', name: 'Living Room', name_th: 'ห้องนั่งเล่น', url: 'https://www.globalhouse.co.th/living-room', estimated_products: 10000 },
+    ],
+  };
+
+  return categoryMap[retailerCode] || [];
 }
 

@@ -1,0 +1,145 @@
+{
+  "started_at": "2025-06-27T23:58:04.048736",
+  "completed_categories": [
+    "LIG",
+    "PAI",
+    "BAT",
+    "PLU",
+    "KIT",
+    "SMA",
+    "HHP",
+    "TVA",
+    "FLO",
+    "FUR",
+    "APP"
+  ],
+  "current_category": null,
+  "total_discovered": 640,
+  "total_scraped": 258,
+  "total_failed": 0,
+  "category_results": {
+    "LIG": {
+      "job_id": "4425f188-e0f0-4e96-905a-8d17b1265f40",
+      "total": 640,
+      "success": 258,
+      "failed": 0,
+      "success_rate": 40.3125,
+      "category_url": "https://www.homepro.co.th/c/LIG",
+      "discovered": 640,
+      "elapsed_time_seconds": 38822.03084683418,
+      "category_code": "LIG",
+      "category_name": "\u0e42\u0e04\u0e21\u0e44\u0e1f\u0e41\u0e25\u0e30\u0e2b\u0e25\u0e2d\u0e14\u0e44\u0e1f (Lighting)",
+      "completed_at": "2025-06-28T10:45:06.080721"
+    },
+    "PAI": {
+      "category_code": "PAI",
+      "category_name": "\u0e2a\u0e35\u0e41\u0e25\u0e30\u0e2d\u0e38\u0e1b\u0e01\u0e23\u0e13\u0e4c\u0e17\u0e32\u0e2a\u0e35 (Paint)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 1.463818073272705,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:45:13.546038"
+    },
+    "BAT": {
+      "category_code": "BAT",
+      "category_name": "\u0e2b\u0e49\u0e2d\u0e07\u0e19\u0e49\u0e33 (Bathroom)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 1.0626230239868164,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:45:20.611796"
+    },
+    "PLU": {
+      "category_code": "PLU",
+      "category_name": "\u0e07\u0e32\u0e19\u0e23\u0e30\u0e1a\u0e1a\u0e1b\u0e23\u0e30\u0e1b\u0e32 (Plumbing)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 60.92192006111145,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:46:27.537006"
+    },
+    "KIT": {
+      "category_code": "KIT",
+      "category_name": "\u0e2b\u0e49\u0e2d\u0e07\u0e04\u0e23\u0e31\u0e27\u0e41\u0e25\u0e30\u0e2d\u0e38\u0e1b\u0e01\u0e23\u0e13\u0e4c (Kitchen)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 0.9552347660064697,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:46:34.493667"
+    },
+    "SMA": {
+      "category_code": "SMA",
+      "category_name": "\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e43\u0e0a\u0e49\u0e44\u0e1f\u0e1f\u0e49\u0e32\u0e02\u0e19\u0e32\u0e14\u0e40\u0e25\u0e47\u0e01 (Small Appliances)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 0.8804590702056885,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:46:41.377725"
+    },
+    "HHP": {
+      "category_code": "HHP",
+      "category_name": "\u0e08\u0e31\u0e14\u0e40\u0e01\u0e47\u0e1a\u0e41\u0e25\u0e30\u0e02\u0e2d\u0e07\u0e43\u0e0a\u0e49\u0e43\u0e19\u0e1a\u0e49\u0e32\u0e19 (Storage & Household)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 0.8424861431121826,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:46:48.221535"
+    },
+    "TVA": {
+      "category_code": "TVA",
+      "category_name": "\u0e17\u0e35\u0e27\u0e35 \u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e40\u0e2a\u0e35\u0e22\u0e07 \u0e40\u0e01\u0e21 (TV, Audio, Gaming)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 61.06898903846741,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:47:55.291884"
+    },
+    "FLO": {
+      "category_code": "FLO",
+      "category_name": "\u0e27\u0e31\u0e2a\u0e14\u0e38\u0e1b\u0e39\u0e1e\u0e37\u0e49\u0e19\u0e41\u0e25\u0e30\u0e1c\u0e19\u0e31\u0e07 (Floor & Wall)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 0.863865852355957,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:48:02.157219"
+    },
+    "FUR": {
+      "category_code": "FUR",
+      "category_name": "\u0e40\u0e1f\u0e2d\u0e23\u0e4c\u0e19\u0e34\u0e40\u0e08\u0e2d\u0e23\u0e4c\u0e41\u0e25\u0e30\u0e02\u0e2d\u0e07\u0e41\u0e15\u0e48\u0e07\u0e1a\u0e49\u0e32\u0e19 (Furniture & Decor)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 1.000558853149414,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T10:48:09.161166"
+    },
+    "APP": {
+      "category_code": "APP",
+      "category_name": "\u0e40\u0e04\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e43\u0e0a\u0e49\u0e44\u0e1f\u0e1f\u0e49\u0e32 (Appliances)",
+      "discovered": 0,
+      "success": 0,
+      "failed": 0,
+      "success_rate": 0,
+      "elapsed_time_seconds": 1048.4283583164215,
+      "error": "'success_rate'",
+      "completed_at": "2025-06-28T11:05:43.591730"
+    }
+  }
+}

@@ -12,74 +12,87 @@ from app.api.models import (
     ScrapeJobListResponse
 )
 from app.services.supabase_service import SupabaseService
-from app.core.scraper import HomeProScraper
-from app.core.url_discovery import URLDiscovery
+from app.scrapers.homepro_scraper import HomeProScraper
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
 
 def get_supabase() -> SupabaseService:
     """Dependency to get Supabase service"""
     return SupabaseService()
 
 
-async def run_scraping_job(job_id: str, job_type: str, target_url: str, urls: List[str] = None, max_pages: int = 5):
+async def update_job_in_db(job_id: str, updates: dict):
+    """Update job in database"""
+    supabase = get_supabase()
+    await supabase.update_scrape_job(job_id, updates)
+
+async def run_scraping_job(job_id: str, job_type: str, target_url: str, urls: List[str] = None, max_pages: int = 5, retailer_code: str = None):
     """Background task to run scraping job"""
-    supabase = SupabaseService()
-    scraper = HomeProScraper()
+    from datetime import datetime
+    from app.scrapers import get_scraper_for_retailer
     
     try:
         # Update job status to running
-        await supabase.update_scrape_job(job_id, {'status': 'running'})
+        await update_job_in_db(job_id, {
+            'status': 'running',
+            'started_at': datetime.now().isoformat()
+        })
         
-        if job_type == 'product' and urls:
-            # Scrape multiple products
-            results = await scraper.scrape_batch(urls, max_concurrent=5)
-            
-            await supabase.update_scrape_job(job_id, {
-                'status': 'completed',
-                'total_items': results['total'],
-                'processed_items': results['total'],
-                'success_items': results['success'],
-                'failed_items': results['failed']
-            })
-            
-        elif job_type == 'category':
-            # Discover and scrape category
-            discovery = URLDiscovery()
-            try:
-                product_urls = await discovery.discover_from_category(target_url, max_pages)
-                
-                if product_urls:
-                    results = await scraper.scrape_batch(product_urls, max_concurrent=5)
-                    
-                    await supabase.update_scrape_job(job_id, {
-                        'status': 'completed',
-                        'total_items': len(product_urls),
-                        'processed_items': results['total'],
-                        'success_items': results['success'],
-                        'failed_items': results['failed']
-                    })
-                else:
-                    await supabase.update_scrape_job(job_id, {
-                        'status': 'failed',
-                        'error_message': 'No products found in category'
-                    })
-            finally:
-                await discovery.close()
-                
+        # Initialize appropriate scraper based on retailer
+        if retailer_code:
+            scraper = get_scraper_for_retailer(retailer_code)
         else:
-            await supabase.update_scrape_job(job_id, {
-                'status': 'failed',
-                'error_message': 'Invalid job type or missing parameters'
-            })
+            # Default to HomePro for backward compatibility
+            scraper = HomeProScraper()
             
+        total_items = 0
+        success_items = 0
+        failed_items = 0
+        
+        if job_type == 'category':
+            # Real category scraping
+            logger.info(f"Starting category scraping for {target_url}")
+            result = await scraper.scrape_category(target_url, max_pages=max_pages)
+            
+            total_items = result.get('discovered', 0)
+            success_items = result.get('success', 0)
+            failed_items = result.get('failed', 0)
+            
+            logger.info(f"Category scraping completed: {success_items}/{total_items} successful")
+            
+        elif job_type == 'product' and urls:
+            # Real product scraping
+            logger.info(f"Starting product scraping for {len(urls)} URLs")
+            result = await scraper.scrape_batch(urls)
+            
+            total_items = result.get('total', len(urls))
+            success_items = result.get('success', 0)
+            failed_items = result.get('failed', 0)
+            
+            logger.info(f"Product scraping completed: {success_items}/{total_items} successful")
+            
+        else:
+            raise ValueError('Invalid job type or missing parameters')
+        
+        # Update job as completed
+        await update_job_in_db(job_id, {
+            'status': 'completed',
+            'total_items': total_items,
+            'processed_items': total_items,
+            'success_items': success_items,
+            'failed_items': failed_items,
+            'completed_at': datetime.now().isoformat()
+        })
+        
+        logger.info(f"Scraping job {job_id} completed successfully")
+        
     except Exception as e:
         logger.error(f"Scraping job {job_id} failed: {str(e)}")
-        await supabase.update_scrape_job(job_id, {
+        await update_job_in_db(job_id, {
             'status': 'failed',
-            'error_message': str(e)
+            'error_message': str(e),
+            'completed_at': datetime.now().isoformat()
         })
 
 
@@ -104,14 +117,18 @@ async def create_scrape_job(
         if request.job_type in ['category', 'search'] and not request.target_url:
             raise HTTPException(status_code=400, detail="Target URL required for category/search scraping")
         
-        # Create job record
+        # Validate URL format
+        if request.target_url and not request.target_url.startswith('http'):
+            raise HTTPException(status_code=400, detail="Invalid URL format. Must start with http:// or https://")
+        
+        # Create job record in database
         job = await supabase.create_scrape_job(
             job_type=request.job_type,
             target_url=request.target_url or (request.urls[0] if request.urls else None)
         )
         
         if not job:
-            raise HTTPException(status_code=500, detail="Failed to create job")
+            raise HTTPException(status_code=500, detail="Failed to create job in database")
         
         # Start background task
         background_tasks.add_task(
@@ -120,7 +137,8 @@ async def create_scrape_job(
             request.job_type,
             request.target_url,
             request.urls,
-            request.max_pages or 5
+            request.max_pages or 5,
+            request.retailer_code
         )
         
         return ScrapeJobResponse(
@@ -153,6 +171,7 @@ async def list_scrape_jobs(
 ):
     """List scraping jobs with optional status filter"""
     try:
+        # Get jobs from database
         jobs = await supabase.get_scrape_jobs(status=status, limit=limit)
         
         # Convert to response models
@@ -162,10 +181,10 @@ async def list_scrape_jobs(
                 job_type=job['job_type'],
                 status=job['status'],
                 target_url=job.get('target_url'),
-                total_items=job.get('total_items'),
-                processed_items=job.get('processed_items'),
-                success_items=job.get('success_items'),
-                failed_items=job.get('failed_items'),
+                total_items=job.get('total_items', 0),
+                processed_items=job.get('processed_items', 0),
+                success_items=job.get('success_items', 0),
+                failed_items=job.get('failed_items', 0),
                 error_message=job.get('error_message'),
                 created_at=job['created_at'],
                 started_at=job.get('started_at'),
@@ -174,10 +193,11 @@ async def list_scrape_jobs(
             for job in jobs
         ]
         
-        # Count by status
-        active_jobs = sum(1 for job in jobs if job['status'] in ['pending', 'running'])
-        completed_jobs = sum(1 for job in jobs if job['status'] == 'completed')
-        failed_jobs = sum(1 for job in jobs if job['status'] == 'failed')
+        # Get counts by status (separate queries for efficiency)
+        all_jobs = await supabase.get_scrape_jobs(limit=1000)  # Get more for counting
+        active_jobs = sum(1 for job in all_jobs if job['status'] in ['pending', 'running'])
+        completed_jobs = sum(1 for job in all_jobs if job['status'] == 'completed')
+        failed_jobs = sum(1 for job in all_jobs if job['status'] == 'failed')
         
         return ScrapeJobListResponse(
             jobs=job_responses,
@@ -239,9 +259,9 @@ async def cancel_scrape_job(
         if job['status'] not in ['pending', 'running']:
             raise HTTPException(status_code=400, detail=f"Cannot cancel job with status: {job['status']}")
         
-        # Update job status
+        # Update job status (use 'failed' instead of 'cancelled' due to DB constraint)
         await supabase.update_scrape_job(job_id, {
-            'status': 'cancelled',
+            'status': 'failed',
             'error_message': 'Cancelled by user'
         })
         

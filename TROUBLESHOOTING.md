@@ -75,9 +75,36 @@ Before running any command:
 - [ ] Check `.env` file exists with credentials
 - [ ] Test connections first: `python3 -m app.test_connection`
 
+## Frontend Issues
+
+### 7. API Endpoint Mismatch Errors
+
+**Problem**: Frontend getting 404 errors when calling backend APIs.
+
+**Common Errors**:
+- `GET /api/v1/monitoring/categories/health 404`
+- `GET /api/monitoring/categories/by-retailer 404`
+
+**Solution**: 
+The frontend was using incorrect API paths. This has been fixed:
+1. API base URL is now `/api` (not `/api/v1`)
+2. Category health endpoints are per-retailer: `/api/categories/health/{retailer_code}`
+3. No general category health endpoint exists
+4. Monitoring triggers are not implemented in backend
+
+**Environment Configuration**:
+Create a `.env` file in the frontend directory:
+```bash
+cd frontend
+cp .env.example .env
+```
+
+Update `REACT_APP_API_URL` if needed (default is `http://localhost:8000/api`)
+
 ## Getting Help
 
 1. Check logs for detailed error messages
 2. Run with smaller batches first
 3. Verify HomePro website is accessible
 4. Check Firecrawl API status
+5. For frontend issues, check browser console for API errors

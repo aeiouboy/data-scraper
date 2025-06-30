@@ -18,6 +18,9 @@ import {
   Checkbox,
   Alert,
   Snackbar,
+  Tooltip,
+  Avatar,
+  Stack,
 } from '@mui/material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 import {
@@ -27,9 +30,21 @@ import {
   FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { productApi } from '../services/api';
+import { useRetailer } from '../contexts/RetailerContext';
+import RetailerSelector from '../components/RetailerSelector';
+
+const retailerColors: Record<string, string> = {
+  'HP': '#FF6B35',   // HomePro Orange
+  'TWD': '#1976D2',  // Thai Watsadu Blue
+  'GH': '#4CAF50',   // Global House Green
+  'DH': '#FF9800',   // DoHome Orange
+  'BT': '#9C27B0',   // Boonthavorn Purple
+  'MH': '#607D8B',   // MegaHome Blue Grey
+};
 
 export default function Products() {
   const queryClient = useQueryClient();
+  const { selectedRetailer, multiRetailerMode, selectedRetailers } = useRetailer();
   const [searchParams, setSearchParams] = useState({
     query: '',
     brands: [] as string[],
@@ -49,26 +64,35 @@ export default function Products() {
 
   // Fetch brands and categories for filters
   const { data: brandsData } = useQuery({
-    queryKey: ['brands'],
+    queryKey: ['brands', multiRetailerMode ? 'multi' : selectedRetailer],
     queryFn: async () => {
-      const response = await productApi.getBrands();
+      const retailerCode = multiRetailerMode ? undefined : selectedRetailer || undefined;
+      const response = await productApi.getBrands(retailerCode);
       return response.data.brands;
     },
   });
 
   const { data: categoriesData } = useQuery({
-    queryKey: ['categories'],
+    queryKey: ['categories', multiRetailerMode ? 'multi' : selectedRetailer],
     queryFn: async () => {
-      const response = await productApi.getCategories();
+      const retailerCode = multiRetailerMode ? undefined : selectedRetailer || undefined;
+      const response = await productApi.getCategories(retailerCode);
       return response.data.categories;
     },
   });
 
   // Search products
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['products', searchParams],
+    queryKey: ['products', searchParams, multiRetailerMode ? selectedRetailers : selectedRetailer],
     queryFn: async () => {
-      const response = await productApi.search(searchParams);
+      const searchParamsWithRetailer = {
+        ...searchParams,
+        ...(multiRetailerMode ? 
+          { retailer_codes: selectedRetailers } : 
+          selectedRetailer ? { retailer_code: selectedRetailer } : {}
+        )
+      };
+      const response = await productApi.search(searchParamsWithRetailer);
       return response.data;
     },
   });
@@ -89,36 +113,176 @@ export default function Products() {
     { field: 'sku', headerName: 'SKU', width: 120 },
     { field: 'name', headerName: 'Product Name', width: 300, flex: 1 },
     { field: 'brand', headerName: 'Brand', width: 120 },
-    { field: 'category', headerName: 'Category', width: 120 },
+    ...(multiRetailerMode ? [
+      {
+        field: 'retailer_code',
+        headerName: 'Retailer',
+        width: 100,
+        renderCell: (params: any) => (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Avatar
+              sx={{
+                bgcolor: retailerColors[params.value] || '#666',
+                width: 24,
+                height: 24,
+                fontSize: 12,
+              }}
+            >
+              {params.value}
+            </Avatar>
+            <Typography variant="caption">{params.value}</Typography>
+          </Stack>
+        ),
+      } as GridColDef
+    ] : []),
+    { 
+      field: 'category', 
+      headerName: 'Category', 
+      width: 180,
+      renderCell: (params) => {
+        const category = params.value;
+        if (!category) return <Typography variant="body2" color="text.disabled">-</Typography>;
+        
+        return (
+          <Tooltip title={category} placement="top">
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '160px'
+              }}
+            >
+              {category}
+            </Typography>
+          </Tooltip>
+        );
+      }
+    },
+    {
+      field: 'original_price',
+      headerName: 'Original Price',
+      width: 130,
+      renderCell: (params) => {
+        const originalPrice = params.value;
+        const currentPrice = params.row.current_price;
+        const hasDiscount = originalPrice && currentPrice && originalPrice > currentPrice;
+        
+        if (!originalPrice) {
+          return <Typography variant="body2" color="text.disabled">-</Typography>;
+        }
+        
+        return (
+          <Typography
+            variant="body2"
+            sx={{
+              color: hasDiscount ? 'text.secondary' : 'text.primary',
+              textDecoration: hasDiscount ? 'line-through' : 'none',
+              fontWeight: 'normal'
+            }}
+          >
+            ฿{originalPrice.toFixed(2)}
+          </Typography>
+        );
+      },
+    },
     {
       field: 'current_price',
-      headerName: 'Price',
-      width: 120,
-      renderCell: (params) => `฿${params.value?.toFixed(2) || 'N/A'}`,
+      headerName: 'Sale Price',
+      width: 130,
+      renderCell: (params) => {
+        const currentPrice = params.value;
+        const originalPrice = params.row.original_price;
+        const hasDiscount = originalPrice && originalPrice > currentPrice;
+        
+        if (!currentPrice) {
+          return <Typography variant="body2" color="text.disabled">N/A</Typography>;
+        }
+        
+        return (
+          <Typography
+            variant="body2"
+            sx={{
+              color: hasDiscount ? 'error.main' : 'text.primary',
+              fontWeight: hasDiscount ? 'bold' : 'normal'
+            }}
+          >
+            ฿{currentPrice.toFixed(2)}
+          </Typography>
+        );
+      },
     },
     {
       field: 'discount_percentage',
       headerName: 'Discount',
-      width: 100,
-      renderCell: (params) => params.value ? (
-        <Chip
-          label={`${params.value.toFixed(0)}%`}
-          color="secondary"
-          size="small"
-        />
-      ) : null,
+      width: 120,
+      renderCell: (params) => {
+        const discountPercent = params.value;
+        const currentPrice = params.row.current_price;
+        const originalPrice = params.row.original_price;
+        const savings = originalPrice && currentPrice ? (originalPrice - currentPrice) : 0;
+        
+        return discountPercent ? (
+          <Box>
+            <Chip
+              label={`${discountPercent.toFixed(0)}%`}
+              color="secondary"
+              size="small"
+              sx={{ mb: 0.5 }}
+            />
+            {savings > 0 && (
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'success.main',
+                  display: 'block',
+                  fontSize: '0.7rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                Save ฿{savings.toFixed(2)}
+              </Typography>
+            )}
+          </Box>
+        ) : null;
+      },
     },
     {
       field: 'availability',
       headerName: 'Status',
       width: 120,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          color={params.value === 'in_stock' ? 'success' : 'default'}
-          size="small"
-        />
-      ),
+      renderCell: (params) => {
+        const status = params.value;
+        const getStatusLabel = (status: string) => {
+          switch (status) {
+            case 'in_stock': return 'In Stock';
+            case 'out_of_stock': return 'Out of Stock';
+            case 'limited_stock': return 'Limited';
+            case 'preorder': return 'Pre-order';
+            case 'unknown': return 'Unknown';
+            default: return status || 'Unknown';
+          }
+        };
+        
+        const getStatusColor = (status: string) => {
+          switch (status) {
+            case 'in_stock': return 'success';
+            case 'out_of_stock': return 'error';
+            case 'limited_stock': return 'warning';
+            case 'preorder': return 'info';
+            default: return 'default';
+          }
+        };
+        
+        return (
+          <Chip
+            label={getStatusLabel(status)}
+            color={getStatusColor(status) as any}
+            size="small"
+          />
+        );
+      },
     },
     {
       field: 'actions',
@@ -172,6 +336,8 @@ export default function Products() {
       <Typography variant="h4" gutterBottom>
         Products
       </Typography>
+
+      <RetailerSelector variant="full" showStats={true} showMultiMode={true} />
 
       {/* Search Bar */}
       <Paper sx={{ p: 2, mb: 2 }}>

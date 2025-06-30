@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 import logging
 from contextlib import asynccontextmanager
 
-from app.api.routers import products, scraping, analytics, config
+from app.api.routers import products, scraping, analytics, config, retailers, price_comparisons, monitoring, categories, schedules
 from app.services.supabase_service import SupabaseService
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # React dev servers
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,6 +50,11 @@ app.include_router(products.router, prefix="/api/products", tags=["products"])
 app.include_router(scraping.router, prefix="/api/scraping", tags=["scraping"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 app.include_router(config.router, prefix="/api/config", tags=["config"])
+app.include_router(retailers.router, prefix="/api/retailers", tags=["retailers"])
+app.include_router(price_comparisons.router, prefix="/api/price-comparisons", tags=["price-comparisons"])
+app.include_router(monitoring.router, prefix="/api/monitoring", tags=["monitoring"])
+app.include_router(categories.router, prefix="/api/categories", tags=["categories"])
+app.include_router(schedules.router, prefix="/api", tags=["schedules"])
 
 
 @app.get("/")
@@ -63,6 +68,10 @@ async def root():
             "scraping": "/api/scraping",
             "analytics": "/api/analytics",
             "config": "/api/config",
+            "retailers": "/api/retailers",
+            "price-comparisons": "/api/price-comparisons",
+            "monitoring": "/api/monitoring",
+            "categories": "/api/categories",
             "docs": "/docs",
             "redoc": "/redoc"
         }
