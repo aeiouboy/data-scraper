@@ -14,7 +14,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
-import RetailerSelector from './RetailerSelector';
+import FilterableRetailerSelector from './FilterableRetailerSelector';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
@@ -61,8 +61,8 @@ export default function Layout({ children }: LayoutProps) {
       <Divider />
       
       {/* Retailer Selector in Sidebar */}
-      <Box sx={{ p: 1 }}>
-        <RetailerSelector variant="compact" showStats={false} />
+      <Box sx={{ p: 2 }}>
+        <FilterableRetailerSelector fullWidth />
       </Box>
       <Divider />
       

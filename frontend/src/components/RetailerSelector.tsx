@@ -267,7 +267,7 @@ const RetailerSelector: React.FC<RetailerSelectorProps> = ({
                     <Stack direction="row" spacing={1} flexWrap="wrap">
                       <Chip
                         icon={<InventoryIcon />}
-                        label={`${stats.actual_products.toLocaleString()} products`}
+                        label={`${(stats.actual_products || 0).toLocaleString()} products`}
                         size="small"
                         variant="outlined"
                       />

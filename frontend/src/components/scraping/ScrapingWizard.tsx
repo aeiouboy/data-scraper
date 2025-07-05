@@ -10,7 +10,6 @@ import {
   StepLabel,
   Box,
   Typography,
-  TextField,
   FormControl,
   InputLabel,
   Select,
@@ -328,9 +327,7 @@ export default function ScrapingWizard({
         },
       }}
     >
-      <DialogTitle>
-        <Typography variant="h5">Create Scraping Job</Typography>
-      </DialogTitle>
+      <DialogTitle>Create Scraping Job</DialogTitle>
       
       <DialogContent>
         <Stepper activeStep={activeStep} sx={{ pt: 3, pb: 5 }}>

@@ -4,7 +4,6 @@ import {
   Typography,
   TextField,
   Checkbox,
-  FormControlLabel,
   Button,
   Paper,
   Grid,
@@ -17,7 +16,6 @@ import {
   Search as SearchIcon,
   CheckBox as CheckBoxIcon,
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
-  IndeterminateCheckBox as IndeterminateCheckBoxIcon,
 } from '@mui/icons-material';
 
 interface Category {
@@ -42,7 +40,6 @@ export default function CategorySelector({
   retailerName,
 }: CategorySelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showEstimate, setShowEstimate] = useState(true);
 
   const filteredCategories = useMemo(() => {
     if (!searchTerm) return categories;
@@ -86,9 +83,6 @@ export default function CategorySelector({
     return `~${Math.round(hours)} hours`;
   }, [totalProductsEstimate]);
 
-  const allSelected = filteredCategories.length > 0 && 
-    filteredCategories.every(cat => selectedCategories.includes(cat.code));
-  const someSelected = filteredCategories.some(cat => selectedCategories.includes(cat.code));
 
   return (
     <Box>

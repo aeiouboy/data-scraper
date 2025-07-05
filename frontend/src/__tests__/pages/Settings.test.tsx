@@ -1,11 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { render, screen, fireEvent, waitFor } from '../../test-utils';
 import Settings from '../../pages/Settings';
 import * as api from '../../services/api';
 import { ScheduleType, TaskType } from '../../types/schedule';
+import { setupAllApiMocks } from '../../test-utils/mockHelpers';
 
 jest.mock('../../services/api');
 
@@ -53,27 +51,12 @@ const mockSchedules = [
   },
 ];
 
-const renderWithProviders = (component: React.ReactElement) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-    },
-  });
-
-  return {
-    user: userEvent.setup(),
-    ...render(
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          {component}
-        </BrowserRouter>
-      </QueryClientProvider>
-    ),
-  };
-};
-
 describe('Settings Page', () => {
   beforeEach(() => {
+    // Setup all common API mocks
+    setupAllApiMocks();
+    
+    // Override specific mocks for this test
     (api.configApi.get as jest.Mock).mockResolvedValue({
       data: mockConfig,
     });
@@ -94,30 +77,35 @@ describe('Settings Page', () => {
   });
 
   describe('General Settings Tab', () => {
-    it('should render settings page with title', () => {
-      renderWithProviders(<Settings />);
-      expect(screen.getByText('Settings')).toBeInTheDocument();
+    it('should render settings page with title', async () => {
+      render(<Settings />);
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
     });
 
     it('should display current configuration values', async () => {
-      renderWithProviders(<Settings />);
+      render(<Settings />);
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue('5')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('10')).toBeInTheDocument();
+        // Use getAllByDisplayValue since there might be multiple inputs with same value
+        const fiveInputs = screen.getAllByDisplayValue('5');
+        expect(fiveInputs.length).toBeGreaterThan(0);
+        const tenInputs = screen.getAllByDisplayValue('10');
+        expect(tenInputs.length).toBeGreaterThan(0);
       });
     });
 
     it('should update configuration values', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
       await waitFor(() => {
         expect(screen.getByLabelText('Max Concurrent Jobs')).toBeInTheDocument();
       });
 
-      const maxJobsInput = screen.getByLabelText('Max Concurrent Jobs');
-      await user.clear(maxJobsInput);
-      await user.type(maxJobsInput, '8');
+      const maxJobsInput = screen.getByLabelText('Max Concurrent Jobs') as HTMLInputElement;
+      // Use fireEvent to directly change the value
+      fireEvent.change(maxJobsInput, { target: { value: '8' } });
 
       const saveButton = screen.getByText('Save Settings');
       await user.click(saveButton);
@@ -131,7 +119,7 @@ describe('Settings Page', () => {
     });
 
     it('should toggle scraping enabled', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
       await waitFor(() => {
         expect(screen.getByLabelText('Enable Scraping')).toBeInTheDocument();
@@ -151,7 +139,7 @@ describe('Settings Page', () => {
     });
 
     it('should show success message after saving', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
       await waitFor(() => {
         expect(screen.getByText('Save Settings')).toBeInTheDocument();
@@ -166,7 +154,7 @@ describe('Settings Page', () => {
     });
 
     it('should reset to defaults when reset button clicked', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
       
       // Mock window.location.reload
       delete (window as any).location;
@@ -185,9 +173,13 @@ describe('Settings Page', () => {
 
   describe('Schedules Tab', () => {
     it('should switch to schedules tab', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
-      const schedulesTab = screen.getByText('Schedules');
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
+
+      const schedulesTab = screen.getByRole('tab', { name: /schedules/i });
       await user.click(schedulesTab);
 
       await waitFor(() => {
@@ -196,9 +188,13 @@ describe('Settings Page', () => {
     });
 
     it('should display schedule list', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
-      const schedulesTab = screen.getByText('Schedules');
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
+
+      const schedulesTab = screen.getByRole('tab', { name: /schedules/i });
       await user.click(schedulesTab);
 
       await waitFor(() => {
@@ -208,9 +204,13 @@ describe('Settings Page', () => {
     });
 
     it('should toggle schedule enabled status', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
-      const schedulesTab = screen.getByText('Schedules');
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
+
+      const schedulesTab = screen.getByRole('tab', { name: /schedules/i });
       await user.click(schedulesTab);
 
       await waitFor(() => {
@@ -225,9 +225,13 @@ describe('Settings Page', () => {
     });
 
     it('should open add schedule dialog', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
-      const schedulesTab = screen.getByText('Schedules');
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
+
+      const schedulesTab = screen.getByRole('tab', { name: /schedules/i });
       await user.click(schedulesTab);
 
       await waitFor(() => {
@@ -241,9 +245,13 @@ describe('Settings Page', () => {
     });
 
     it('should create new schedule', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
-      const schedulesTab = screen.getByText('Schedules');
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
+
+      const schedulesTab = screen.getByRole('tab', { name: /schedules/i });
       await user.click(schedulesTab);
 
       const addButton = screen.getByText('Add Schedule');
@@ -267,9 +275,13 @@ describe('Settings Page', () => {
     });
 
     it('should run schedule immediately', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
-      const schedulesTab = screen.getByText('Schedules');
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
+
+      const schedulesTab = screen.getByRole('tab', { name: /schedules/i });
       await user.click(schedulesTab);
 
       await waitFor(() => {
@@ -283,10 +295,14 @@ describe('Settings Page', () => {
     });
 
     it('should delete schedule with confirmation', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
       window.confirm = jest.fn().mockReturnValue(true);
 
-      const schedulesTab = screen.getByText('Schedules');
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
+
+      const schedulesTab = screen.getByRole('tab', { name: /schedules/i });
       await user.click(schedulesTab);
 
       await waitFor(() => {
@@ -303,9 +319,13 @@ describe('Settings Page', () => {
     });
 
     it('should edit existing schedule', async () => {
-      const { user } = renderWithProviders(<Settings />);
+      const { user } = render(<Settings />);
 
-      const schedulesTab = screen.getByText('Schedules');
+      await waitFor(() => {
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+      });
+
+      const schedulesTab = screen.getByRole('tab', { name: /schedules/i });
       await user.click(schedulesTab);
 
       await waitFor(() => {
@@ -315,7 +335,7 @@ describe('Settings Page', () => {
       const editButtons = screen.getAllByLabelText('Edit');
       await user.click(editButtons[0]);
 
-      expect(screen.getByText('Update Schedule')).toBeInTheDocument();
+      expect(screen.getByText('Edit Schedule')).toBeInTheDocument();
       expect(screen.getByDisplayValue('Monitor all retailer categories')).toBeInTheDocument();
     });
   });

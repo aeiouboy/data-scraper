@@ -112,7 +112,7 @@ const fetchCategoryHealth = async (filters?: MonitoringFilters): Promise<Categor
   
   // Transform the data to match CategoryHealth interface
   const stats = statsResponse.data.retailer_stats || {};
-  const changes = changesResponse.data.changes || [];
+  // const changes = changesResponse.data.changes || [];
   
   const healthData: CategoryHealth[] = [];
   

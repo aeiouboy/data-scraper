@@ -243,7 +243,7 @@ export default function Dashboard() {
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Total Products"
-                value={retailerStats.reduce((sum, stat) => sum + stat.actual_products, 0).toLocaleString()}
+                value={retailerStats.reduce((sum, stat) => sum + (stat.actual_products || 0), 0).toLocaleString()}
                 icon={<InventoryIcon />}
                 color="#1976D2"
                 subtitle={`Across ${selectedRetailers.length} retailers`}
@@ -253,7 +253,7 @@ export default function Dashboard() {
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
                 title="Products In Stock"
-                value={retailerStats.reduce((sum, stat) => sum + stat.in_stock_products, 0).toLocaleString()}
+                value={retailerStats.reduce((sum, stat) => sum + (stat.in_stock_products || 0), 0).toLocaleString()}
                 icon={<StoreIcon />}
                 color="#4CAF50"
                 subtitle="Available for purchase"
@@ -326,7 +326,7 @@ export default function Dashboard() {
                                 Products
                               </Typography>
                               <Typography variant="h6" fontWeight="bold">
-                                {stat.actual_products.toLocaleString()}
+                                {(stat.actual_products || 0).toLocaleString()}
                               </Typography>
                             </Grid>
                             <Grid item xs={6}>
@@ -334,7 +334,7 @@ export default function Dashboard() {
                                 In Stock
                               </Typography>
                               <Typography variant="h6" fontWeight="bold" color="success.main">
-                                {stat.in_stock_products.toLocaleString()}
+                                {(stat.in_stock_products || 0).toLocaleString()}
                               </Typography>
                             </Grid>
                             <Grid item xs={6}>

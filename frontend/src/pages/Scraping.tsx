@@ -20,7 +20,6 @@ import {
   IconButton,
   LinearProgress,
   Grid,
-  Fade,
   Container,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -32,7 +31,6 @@ import {
 } from '@mui/icons-material';
 import { scrapingApi } from '../services/api';
 import ScrapingWizard from '../components/scraping/ScrapingWizard';
-import JobProgressCard from '../components/scraping/JobProgressCard';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -54,7 +52,6 @@ export default function Scraping() {
   const [tabValue, setTabValue] = useState(0);
   const [openWizard, setOpenWizard] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [wizardMode, setWizardMode] = useState(true); // Toggle between wizard and classic mode
   const [newJobForm, setNewJobForm] = useState({
     job_type: 'category',
     target_url: '',
@@ -63,7 +60,7 @@ export default function Scraping() {
   });
 
   // Fetch jobs
-  const { data: jobsData, isLoading, refetch } = useQuery({
+  const { data: jobsData, isLoading } = useQuery({
     queryKey: ['scraping-jobs', tabValue],
     queryFn: async () => {
       const status = tabValue === 0 ? undefined : tabValue === 1 ? 'running' : 'completed';
@@ -94,8 +91,10 @@ export default function Scraping() {
       // For now, create individual jobs for each category
       // In the future, this would be a single batch endpoint
       const { retailer_code, category_codes, max_pages } = data;
-      const retailer = await queryClient.getQueryData(['retailers']);
-      const categories = getCategoriesForRetailer(retailer_code);
+      
+      // Get categories from the API (they're already cached in the wizard)
+      const categoriesData = queryClient.getQueryData<any[]>(['retailer-categories', retailer_code]);
+      const categories = categoriesData || [];
       
       const jobs = category_codes.map((categoryCode: string) => {
         const category = categories.find(c => c.code === categoryCode);
@@ -203,13 +202,31 @@ export default function Scraping() {
               size="small"
               onClick={() => cancelJobMutation.mutate(params.row.id)}
               disabled={cancelJobMutation.isPending}
+              title="Cancel Job"
             >
               <StopIcon />
             </IconButton>
           )}
-          <IconButton size="small" onClick={() => refetch()}>
-            <RefreshIcon />
-          </IconButton>
+          {(params.row.status === 'failed' || params.row.status === 'completed') && (
+            <IconButton 
+              size="small" 
+              onClick={() => {
+                // Create a new job with the same parameters
+                const retryData = {
+                  job_type: params.row.job_type,
+                  target_url: params.row.target_url,
+                  retailer_code: params.row.retailer_code || 'TWD',
+                  max_pages: params.row.max_pages || 5,
+                  urls: params.row.urls || []
+                };
+                createJobMutation.mutate(retryData);
+              }}
+              disabled={createJobMutation.isPending}
+              title="Retry Job"
+            >
+              <RefreshIcon />
+            </IconButton>
+          )}
         </Box>
       ),
     },
@@ -429,32 +446,4 @@ export default function Scraping() {
   );
 }
 
-// Temporary function until we have the real API
-function getCategoriesForRetailer(retailerCode: string): any[] {
-  const categoryMap: Record<string, any[]> = {
-    HP: [
-      { code: 'LIG', name: 'Lighting', name_th: 'โคมไฟและหลอดไฟ', url: 'https://www.homepro.co.th/c/LIG', estimated_products: 5000 },
-      { code: 'PAI', name: 'Paint', name_th: 'สีและอุปกรณ์ทาสี', url: 'https://www.homepro.co.th/c/PAI', estimated_products: 3000 },
-      { code: 'FUR', name: 'Furniture', name_th: 'เฟอร์นิเจอร์', url: 'https://www.homepro.co.th/c/FUR', estimated_products: 8000 },
-      { code: 'APP', name: 'Appliances', name_th: 'เครื่องใช้ไฟฟ้า', url: 'https://www.homepro.co.th/c/APP', estimated_products: 6000 },
-      { code: 'KIT', name: 'Kitchen', name_th: 'ห้องครัว', url: 'https://www.homepro.co.th/c/KIT', estimated_products: 4000 },
-      { code: 'BAT', name: 'Bathroom', name_th: 'ห้องน้ำ', url: 'https://www.homepro.co.th/c/BAT', estimated_products: 3500 },
-      { code: 'TOO', name: 'Tools', name_th: 'เครื่องมือ', url: 'https://www.homepro.co.th/c/TOO', estimated_products: 5500 },
-      { code: 'GAR', name: 'Garden', name_th: 'สวน', url: 'https://www.homepro.co.th/c/GAR', estimated_products: 2500 },
-    ],
-    TWD: [
-      { code: 'CON', name: 'Construction Materials', name_th: 'วัสดุก่อสร้าง', url: 'https://www.thaiwatsadu.com/th/c/construction-materials', estimated_products: 15000 },
-      { code: 'TOH', name: 'Tools & Hardware', name_th: 'เครื่องมือและฮาร์ดแวร์', url: 'https://www.thaiwatsadu.com/th/c/tools-hardware', estimated_products: 12000 },
-      { code: 'ELE', name: 'Electrical & Lighting', name_th: 'ไฟฟ้าและแสงสว่าง', url: 'https://www.thaiwatsadu.com/th/c/electrical-lighting', estimated_products: 8000 },
-      { code: 'PLU', name: 'Plumbing & Bathroom', name_th: 'ประปาและห้องน้ำ', url: 'https://www.thaiwatsadu.com/th/c/plumbing-bathroom', estimated_products: 6000 },
-    ],
-    GH: [
-      { code: 'FRN', name: 'Furniture', name_th: 'เฟอร์นิเจอร์', url: 'https://www.globalhouse.co.th/furniture', estimated_products: 25000 },
-      { code: 'DEC', name: 'Home Decor', name_th: 'ของตกแต่งบ้าน', url: 'https://www.globalhouse.co.th/home-decor', estimated_products: 15000 },
-      { code: 'LIV', name: 'Living Room', name_th: 'ห้องนั่งเล่น', url: 'https://www.globalhouse.co.th/living-room', estimated_products: 10000 },
-    ],
-  };
-
-  return categoryMap[retailerCode] || [];
-}
 

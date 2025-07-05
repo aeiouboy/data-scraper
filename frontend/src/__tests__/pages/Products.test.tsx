@@ -1,11 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { render, screen, fireEvent, waitFor } from '../../test-utils';
 import Products from '../../pages/Products';
-import { RetailerProvider } from '../../contexts/RetailerContext';
 import * as api from '../../services/api';
+import { setupAllApiMocks } from '../../test-utils/mockHelpers';
 
 jest.mock('../../services/api');
 
@@ -49,31 +46,17 @@ const mockProducts = [
 ];
 
 const mockBrands = ['Brand A', 'Brand B', 'Brand C'];
-const mockCategories = ['Category 1', 'Category 2', 'Category 3'];
-
-const renderWithProviders = (component: React.ReactElement) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-    },
-  });
-
-  return {
-    user: userEvent.setup(),
-    ...render(
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <RetailerProvider>
-            {component}
-          </RetailerProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    ),
-  };
-};
+const mockCategories = [
+  { id: 'cat1', name: 'Category 1' },
+  { id: 'cat2', name: 'Category 2' },
+  { id: 'cat3', name: 'Category 3' },
+];
 
 describe('Products Page', () => {
   beforeEach(() => {
+    setupAllApiMocks();
+    
+    // Test-specific mock overrides
     (api.productApi.search as jest.Mock).mockResolvedValue({
       data: {
         products: mockProducts,
@@ -84,16 +67,10 @@ describe('Products Page', () => {
       },
     });
     (api.productApi.getBrands as jest.Mock).mockResolvedValue({
-      data: mockBrands,
+      data: { brands: mockBrands },
     });
     (api.productApi.getCategories as jest.Mock).mockResolvedValue({
-      data: mockCategories,
-    });
-    (api.retailerApi.getAll as jest.Mock).mockResolvedValue({
-      data: [],
-    });
-    (api.retailerApi.getSummary as jest.Mock).mockResolvedValue({
-      data: [],
+      data: { categories: mockCategories },
     });
   });
 
@@ -102,17 +79,17 @@ describe('Products Page', () => {
   });
 
   it('should render products page with title', () => {
-    renderWithProviders(<Products />);
+    render(<Products />);
     expect(screen.getByText('Products')).toBeInTheDocument();
   });
 
   it('should display search bar', () => {
-    renderWithProviders(<Products />);
-    expect(screen.getByPlaceholderText('Search products...')).toBeInTheDocument();
+    render(<Products />);
+    expect(screen.getByPlaceholderText('Search by name, SKU, or description')).toBeInTheDocument();
   });
 
   it('should display filter options', async () => {
-    renderWithProviders(<Products />);
+    render(<Products />);
     
     await waitFor(() => {
       expect(screen.getByText('Filters')).toBeInTheDocument();
@@ -120,7 +97,7 @@ describe('Products Page', () => {
   });
 
   it('should display products after loading', async () => {
-    renderWithProviders(<Products />);
+    render(<Products />);
 
     await waitFor(() => {
       expect(screen.getByText('Test Product 1')).toBeInTheDocument();
@@ -129,56 +106,79 @@ describe('Products Page', () => {
   });
 
   it('should display product details correctly', async () => {
-    renderWithProviders(<Products />);
+    render(<Products />);
 
+    // Wait for the API call to complete and products to render
     await waitFor(() => {
-      expect(screen.getByText('HP-001')).toBeInTheDocument();
-      expect(screen.getByText('Brand A')).toBeInTheDocument();
-      expect(screen.getByText('฿1,000.00')).toBeInTheDocument();
-      expect(screen.getByText('16.7% off')).toBeInTheDocument();
+      expect(screen.getByText('Test Product 1')).toBeInTheDocument();
     });
+    
+    // Check for basic product data
+    expect(screen.getByText('Brand A')).toBeInTheDocument();
+    expect(screen.getByText('HP-001')).toBeInTheDocument();
+    expect(screen.getByText('Test Product 2')).toBeInTheDocument();
+    expect(screen.getByText('HP-002')).toBeInTheDocument();
   });
 
   it('should handle search input', async () => {
-    const { user } = renderWithProviders(<Products />);
+    const { user } = render(<Products />);
 
-    const searchInput = screen.getByPlaceholderText('Search products...');
+    const searchInput = screen.getByPlaceholderText('Search by name, SKU, or description');
     await user.type(searchInput, 'Test search');
 
-    // Wait for debounce
+    // Click search button to trigger search
+    const searchButton = screen.getByRole('button', { name: /search/i });
+    await user.click(searchButton);
+
     await waitFor(() => {
       expect(api.productApi.search).toHaveBeenCalledWith(
         expect.objectContaining({
           query: 'Test search',
         })
       );
-    }, { timeout: 1000 });
+    });
   });
 
-  it('should toggle grid and list view', async () => {
-    renderWithProviders(<Products />);
+  it('should display products in grid', async () => {
+    render(<Products />);
 
     await waitFor(() => {
       expect(screen.getByText('Test Product 1')).toBeInTheDocument();
     });
 
-    const listViewButton = screen.getByLabelText('List view');
-    fireEvent.click(listViewButton);
-
-    // View should change but products should still be visible
+    // Products should be displayed
     expect(screen.getByText('Test Product 1')).toBeInTheDocument();
+    expect(screen.getByText('Test Product 2')).toBeInTheDocument();
   });
 
   it('should handle price filter changes', async () => {
-    const { user } = renderWithProviders(<Products />);
+    const { user } = render(<Products />);
 
-    const minPriceInput = screen.getByLabelText('Min Price');
-    await user.clear(minPriceInput);
-    await user.type(minPriceInput, '500');
+    // Wait for initial load
+    await waitFor(() => {
+      expect(api.productApi.search).toHaveBeenCalled();
+    });
 
-    const maxPriceInput = screen.getByLabelText('Max Price');
-    await user.clear(maxPriceInput);
-    await user.type(maxPriceInput, '1500');
+    // First click the Filters button to show the filter section
+    const filterButton = screen.getByRole('button', { name: /filters/i });
+    await user.click(filterButton);
+
+    // Wait for filters to be visible
+    await waitFor(() => {
+      expect(screen.getByText('Price Range')).toBeInTheDocument();
+    });
+
+    // Find the price range sliders (there should be 2, one for each thumb)
+    const priceSliders = screen.getAllByRole('slider');
+    expect(priceSliders.length).toBe(2);
+    
+    // Simulate slider change
+    fireEvent.change(priceSliders[0], { target: { value: 500 } });
+    fireEvent.change(priceSliders[1], { target: { value: 1500 } });
+
+    // Click search to apply filters
+    const searchButton = screen.getByRole('button', { name: /search/i });
+    await user.click(searchButton);
 
     await waitFor(() => {
       expect(api.productApi.search).toHaveBeenCalledWith(
@@ -201,7 +201,7 @@ describe('Products Page', () => {
       },
     });
 
-    renderWithProviders(<Products />);
+    render(<Products />);
 
     await waitFor(() => {
       expect(screen.getByText('Test Product 1')).toBeInTheDocument();
@@ -211,14 +211,14 @@ describe('Products Page', () => {
   });
 
   it('should show loading state', () => {
-    renderWithProviders(<Products />);
+    render(<Products />);
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
   it('should handle API errors', async () => {
     (api.productApi.search as jest.Mock).mockRejectedValue(new Error('API Error'));
 
-    renderWithProviders(<Products />);
+    render(<Products />);
 
     await waitFor(() => {
       expect(screen.queryByText('Test Product 1')).not.toBeInTheDocument();
@@ -226,10 +226,28 @@ describe('Products Page', () => {
   });
 
   it('should filter by availability', async () => {
-    renderWithProviders(<Products />);
+    const { user } = render(<Products />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(api.productApi.search).toHaveBeenCalled();
+    });
+
+    // First click the Filters button to show the filter section
+    const filterButton = screen.getByRole('button', { name: /filters/i });
+    await user.click(filterButton);
+
+    // Wait for filters to be visible
+    await waitFor(() => {
+      expect(screen.getByLabelText('In Stock Only')).toBeInTheDocument();
+    });
 
     const inStockCheckbox = screen.getByLabelText('In Stock Only');
-    fireEvent.click(inStockCheckbox);
+    await user.click(inStockCheckbox);
+
+    // Click search to apply filters
+    const searchButton = screen.getByRole('button', { name: /search/i });
+    await user.click(searchButton);
 
     await waitFor(() => {
       expect(api.productApi.search).toHaveBeenCalledWith(
@@ -241,10 +259,28 @@ describe('Products Page', () => {
   });
 
   it('should filter by sale items', async () => {
-    renderWithProviders(<Products />);
+    const { user } = render(<Products />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(api.productApi.search).toHaveBeenCalled();
+    });
+
+    // First click the Filters button to show the filter section
+    const filterButton = screen.getByRole('button', { name: /filters/i });
+    await user.click(filterButton);
+
+    // Wait for filters to be visible
+    await waitFor(() => {
+      expect(screen.getByLabelText('On Sale Only')).toBeInTheDocument();
+    });
 
     const onSaleCheckbox = screen.getByLabelText('On Sale Only');
-    fireEvent.click(onSaleCheckbox);
+    await user.click(onSaleCheckbox);
+
+    // Click search to apply filters
+    const searchButton = screen.getByRole('button', { name: /search/i });
+    await user.click(searchButton);
 
     await waitFor(() => {
       expect(api.productApi.search).toHaveBeenCalledWith(

@@ -9,7 +9,6 @@ import {
   Typography,
   Chip,
   IconButton,
-  Divider,
   Stack,
   Alert,
   CircularProgress,
@@ -97,6 +96,7 @@ const CategoryDetailDialog: React.FC<CategoryDetailDialogProps> = ({
       // Load health metrics and recent changes
       loadCategoryDetails();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   const loadCategoryDetails = async () => {
@@ -243,7 +243,7 @@ const CategoryDetailDialog: React.FC<CategoryDetailDialogProps> = ({
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box display="flex" alignItems="center" gap={1}>
             <CategoryIcon />
-            <Typography variant="h6">{category.name}</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>{category.name}</Typography>
           </Box>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
