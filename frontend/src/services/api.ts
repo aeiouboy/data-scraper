@@ -155,6 +155,57 @@ export const priceComparisonApi = {
   createMatch: (masterProductId: string, matchedProductIds: string[]) => 
     api.post('/price-comparisons/matches', { master_product_id: masterProductId, matched_product_ids: matchedProductIds }),
   refreshMatches: () => api.post('/price-comparisons/refresh'),
+  
+  // V2 endpoints with detailed data
+  getDetailedComparisons: (params?: { limit?: number; offset?: number; minSavings?: number; minSavingsPercent?: number; minConfidence?: number; category?: string }) => 
+    api.get('/price-comparisons-v2/detailed-comparisons', { params }),
+  getCategoriesWithSavings: () => 
+    api.get('/price-comparisons-v2/categories-with-savings'),
+  
+  // V2 optimized endpoints
+  getDetailedComparisonsOptimized: (params?: { 
+    limit?: number; 
+    offset?: number; 
+    minSavings?: number; 
+    minSavingsPercent?: number;
+    minConfidence?: number;
+    category?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+  }) => api.get('/price-comparisons-v2/detailed-comparisons-optimized', { params }),
+  
+  getQuickStats: (category?: string) => 
+    api.get('/price-comparisons-v2/quick-stats', { params: category ? { category } : {} }),
+  
+  getCategoriesSummary: () => 
+    api.get('/price-comparisons-v2/categories-summary'),
+};
+
+// Product Matching APIs
+export const matchingApi = {
+  testMatch: (data: {
+    product1_name: string;
+    product2_name: string;
+    brand1?: string;
+    brand2?: string;
+  }) => api.post('/matching/test-match', data),
+  
+  processNewProducts: (params: {
+    retailer_codes?: string[];
+    limit?: number;
+  }) => api.post('/matching/process-new-products', null, { params }),
+  
+  getMatchSuggestions: (productId: string, minConfidence: number = 0.5) => 
+    api.get(`/matching/match-suggestions/${productId}?min_confidence=${minConfidence}`),
+  
+  confirmMatch: (data: {
+    product1_id: string;
+    product2_id: string;
+    is_match: boolean;
+    confidence_override?: number;
+  }) => api.post('/matching/confirm-match', data),
+  
+  getAnalytics: () => api.get('/matching/analytics'),
 };
 
 // Config APIs

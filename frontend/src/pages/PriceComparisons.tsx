@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box,
@@ -20,6 +20,9 @@ import {
   Skeleton,
   Fade,
   Zoom,
+  ToggleButton,
+  ToggleButtonGroup,
+  Container,
 } from '@mui/material';
 import {
   TrendingDown as SavingsIcon,
@@ -28,11 +31,16 @@ import {
   LocalOffer as OfferIcon,
   Refresh as RefreshIcon,
   FilterList as FilterIcon,
+  ViewModule as GridViewIcon,
+  ViewList as ListViewIcon,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { priceComparisonApi } from '../services/api';
 import { useRetailer } from '../contexts/RetailerContext';
 import RetailerSelector from '../components/RetailerSelector';
+import PriceTrackingDashboard from '../components/PriceTrackingDashboard';
+import PriceComparisonCard from '../components/PriceComparisonCard';
 
 const retailerColors: Record<string, string> = {
   'HP': '#FF6B35',   // HomePro Orange
@@ -66,23 +74,70 @@ export default function PriceComparisons() {
   const { selectedRetailers, multiRetailerMode } = useRetailer();
   const [categoryFilter, setCategoryFilter] = useState('');
   const [minSavings, setMinSavings] = useState(100);
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'analytics'>('grid');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [minSavingsInput, setMinSavingsInput] = useState(100);
+  const itemsPerPage = 12;
+  
+  // Debounced update for minSavings
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinSavings(minSavingsInput);
+      setCurrentPage(0);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [minSavingsInput]);
 
-  // Fetch top savings opportunities
+  // Fetch detailed price comparisons (new V2 API)
+  const { data: detailedData, isLoading: loadingDetailed, refetch: refetchDetailed } = useQuery({
+    queryKey: ['price-comparisons-v2', 'detailed', minSavings, categoryFilter, currentPage],
+    queryFn: async () => {
+      try {
+        const response = await priceComparisonApi.getDetailedComparisons({
+          limit: viewMode === 'grid' ? itemsPerPage : 50,
+          offset: viewMode === 'grid' ? currentPage * itemsPerPage : 0,
+          minSavings: minSavings,
+          category: categoryFilter || undefined,
+        });
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching detailed comparisons:', error);
+        return { comparisons: [], total: 0 };
+      }
+    },
+    enabled: multiRetailerMode && selectedRetailers.length > 1,
+    staleTime: 60000, // Cache for 1 minute
+    cacheTime: 300000, // Keep in cache for 5 minutes
+    keepPreviousData: true, // Keep previous data while fetching new page
+  });
+
+  // Fetch top savings opportunities (legacy API for table view)
   const { data: savingsData, isLoading: loadingSavings, refetch: refetchSavings } = useQuery({
     queryKey: ['price-comparisons', 'top-savings', minSavings],
     queryFn: async () => {
-      const response = await priceComparisonApi.getTopSavings(50);
-      return response.data.savings_opportunities as SavingsOpportunity[];
+      try {
+        const response = await priceComparisonApi.getTopSavings(50);
+        return response.data?.savings_opportunities || [];
+      } catch (error) {
+        console.error('Error fetching savings data:', error);
+        return [];
+      }
     },
-    enabled: multiRetailerMode && selectedRetailers.length > 1,
+    enabled: multiRetailerMode && selectedRetailers.length > 1 && viewMode === 'list',
   });
 
   // Fetch retailer competitiveness
   const { data: competitivenessData, isLoading: loadingCompetitiveness } = useQuery({
     queryKey: ['price-comparisons', 'competitiveness'],
     queryFn: async () => {
-      const response = await priceComparisonApi.getRetailerCompetitiveness();
-      return response.data as RetailerCompetitiveness;
+      try {
+        const response = await priceComparisonApi.getRetailerCompetitiveness();
+        return response.data || {};
+      } catch (error) {
+        console.error('Error fetching competitiveness data:', error);
+        return {};
+      }
     },
     enabled: multiRetailerMode && selectedRetailers.length > 1,
   });
@@ -91,18 +146,34 @@ export default function PriceComparisons() {
   const handleRefreshMatches = async () => {
     try {
       await priceComparisonApi.refreshMatches();
+      refetchDetailed();
       refetchSavings();
     } catch (error) {
       console.error('Failed to refresh matches:', error);
     }
   };
 
-  // Filter savings data
-  const filteredSavings = savingsData?.filter(item => {
+  // Filter savings data for table view
+  const filteredSavings = savingsData?.filter((item: SavingsOpportunity) => {
     const meetsMinSavings = item.savings_amount >= minSavings;
     const meetsCategory = !categoryFilter || item.category === categoryFilter;
     return meetsMinSavings && meetsCategory;
   }) || [];
+  
+  // Get comparisons from detailed data with memoization
+  const comparisons = useMemo(() => detailedData?.comparisons || [], [detailedData]);
+  
+  // Calculate summary statistics with memoization
+  const { totalSavings, avgVariance } = useMemo(() => {
+    const total = comparisons.reduce((sum: number, item: any) => 
+      sum + (item.priceAnalysis?.savingsAmount || 0), 0
+    );
+    const avg = comparisons.length > 0 
+      ? comparisons.reduce((sum: number, item: any) => 
+          sum + (item.priceAnalysis?.savingsPercentage || 0), 0) / comparisons.length 
+      : 0;
+    return { totalSavings: total, avgVariance: avg };
+  }, [comparisons]);
 
   const savingsColumns: GridColDef[] = [
     {
@@ -115,7 +186,7 @@ export default function PriceComparisons() {
       field: 'category',
       headerName: 'Category',
       width: 150,
-      renderCell: (params) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Chip label={params.value} size="small" variant="outlined" />
       ),
     },
@@ -123,7 +194,7 @@ export default function PriceComparisons() {
       field: 'savings_amount',
       headerName: 'Max Savings',
       width: 130,
-      renderCell: (params) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant="body2"
           sx={{
@@ -131,7 +202,7 @@ export default function PriceComparisons() {
             fontWeight: 'bold',
           }}
         >
-          ฿{params.value.toFixed(2)}
+          ฿{params.value?.toFixed(2) || '0.00'}
         </Typography>
       ),
     },
@@ -144,7 +215,7 @@ export default function PriceComparisons() {
       field: 'best_retailer',
       headerName: 'Best Price',
       width: 120,
-      renderCell: (params) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Chip
           label={params.value}
           size="small"
@@ -160,7 +231,7 @@ export default function PriceComparisons() {
       field: 'variance_percentage',
       headerName: 'Price Variance',
       width: 130,
-      renderCell: (params) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant="body2"
           sx={{
@@ -168,7 +239,7 @@ export default function PriceComparisons() {
             fontWeight: 'bold',
           }}
         >
-          {params.value.toFixed(1)}%
+          {params.value?.toFixed(1) || '0.0'}%
         </Typography>
       ),
     },
@@ -204,14 +275,36 @@ export default function PriceComparisons() {
           Price Comparisons
         </Typography>
         
-        <Button
-          variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={handleRefreshMatches}
-          disabled={loadingSavings}
-        >
-          Refresh Matches
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(e, newMode) => newMode && setViewMode(newMode)}
+            size="small"
+          >
+            <ToggleButton value="grid">
+              <GridViewIcon sx={{ mr: 1 }} />
+              Cards
+            </ToggleButton>
+            <ToggleButton value="list">
+              <ListViewIcon sx={{ mr: 1 }} />
+              Table
+            </ToggleButton>
+            <ToggleButton value="analytics">
+              <AnalyticsIcon sx={{ mr: 1 }} />
+              Analytics
+            </ToggleButton>
+          </ToggleButtonGroup>
+          
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefreshMatches}
+            disabled={loadingSavings}
+          >
+            Refresh
+          </Button>
+        </Stack>
       </Stack>
 
       <RetailerSelector variant="full" showStats={true} showMultiMode={true} />
@@ -227,7 +320,7 @@ export default function PriceComparisons() {
                 </Avatar>
                 <Box>
                   <Typography variant="h6">
-                    ฿{filteredSavings.reduce((sum, item) => sum + item.savings_amount, 0).toLocaleString()}
+                    ฿{totalSavings.toLocaleString()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Savings Available
@@ -247,7 +340,7 @@ export default function PriceComparisons() {
                 </Avatar>
                 <Box>
                   <Typography variant="h6">
-                    {filteredSavings.length.toLocaleString()}
+                    {comparisons.length.toLocaleString()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Products with Savings
@@ -267,11 +360,10 @@ export default function PriceComparisons() {
                 </Avatar>
                 <Box>
                   <Typography variant="h6">
-                    {filteredSavings.length > 0 ? 
-                      Math.max(...filteredSavings.map(item => item.variance_percentage)).toFixed(1) : 0}%
+                    {avgVariance.toFixed(1)}%
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Max Price Variance
+                    Avg Price Variance
                   </Typography>
                 </Box>
               </Stack>
@@ -307,8 +399,8 @@ export default function PriceComparisons() {
           <TextField
             label="Minimum Savings (฿)"
             type="number"
-            value={minSavings}
-            onChange={(e) => setMinSavings(Number(e.target.value))}
+            value={minSavingsInput}
+            onChange={(e) => setMinSavingsInput(Number(e.target.value))}
             size="small"
             sx={{ width: 200 }}
           />
@@ -316,13 +408,16 @@ export default function PriceComparisons() {
             <InputLabel>Category</InputLabel>
             <Select
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+                setCurrentPage(0);
+              }}
               label="Category"
             >
               <MenuItem value="">All Categories</MenuItem>
-              {Array.from(new Set(savingsData?.map(item => item.category) || [])).map(category => (
-                <MenuItem key={category} value={category}>
-                  {category}
+              {Array.from(new Set(savingsData?.map((item: SavingsOpportunity) => item.category) || [])).map((category) => (
+                <MenuItem key={String(category)} value={String(category)}>
+                  {String(category)}
                 </MenuItem>
               ))}
             </Select>
@@ -330,36 +425,109 @@ export default function PriceComparisons() {
         </Stack>
       </Paper>
 
-      {/* Savings Opportunities Table */}
-      <Paper sx={{ height: 600, mb: 3 }}>
-        <Typography variant="h6" sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-          💰 Top Savings Opportunities
-        </Typography>
-        
-        {loadingSavings ? (
-          <Box sx={{ p: 3 }}>
-            {[...Array(5)].map((_, index) => (
-              <Skeleton key={index} height={60} sx={{ mb: 1 }} />
-            ))}
-          </Box>
-        ) : (
-          <DataGrid
-            rows={filteredSavings.map((item, index) => ({ id: index, ...item }))}
-            columns={savingsColumns}
-            pagination
-            pageSizeOptions={[25, 50, 100]}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 25 } },
-            }}
-            sx={{
-              border: 0,
-              '& .MuiDataGrid-cell:focus': {
-                outline: 'none',
-              },
-            }}
-          />
-        )}
-      </Paper>
+      {/* View Mode Content */}
+      {viewMode === 'analytics' ? (
+        <Paper sx={{ mb: 3, p: 2 }}>
+          <PriceTrackingDashboard />
+        </Paper>
+      ) : (
+        <Paper sx={{ mb: 3 }}>
+          <Typography variant="h6" sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+            💰 Top Savings Opportunities
+          </Typography>
+          
+          {loadingDetailed || loadingSavings ? (
+            viewMode === 'grid' ? (
+              <Box sx={{ p: 2 }}>
+                <Grid container spacing={2}>
+                  {[...Array(6)].map((_, index) => (
+                    <Grid item xs={12} md={6} lg={4} key={index}>
+                      <Skeleton variant="rectangular" height={350} sx={{ borderRadius: 1 }} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            ) : (
+              <Box sx={{ p: 3 }}>
+                {[...Array(5)].map((_, index) => (
+                  <Skeleton key={index} height={60} sx={{ mb: 1 }} />
+                ))}
+              </Box>
+            )
+          ) : viewMode === 'grid' ? (
+            <Box sx={{ p: 2 }}>
+              <Grid container spacing={2}>
+                {comparisons.map((comparison: any, index: number) => (
+                  <Grid item xs={12} md={6} lg={4} key={comparison.matchId || `comp-${index}`}>
+                    <Box sx={{ height: '100%' }}>
+                      <PriceComparisonCard
+                        productName={comparison.productName}
+                        category={comparison.category}
+                        brand={comparison.brand}
+                        retailers={comparison.retailerPrices}
+                        bestRetailerCode={comparison.priceAnalysis?.bestRetailer}
+                        savingsAmount={comparison.priceAnalysis?.savingsAmount || 0}
+                        savingsPercentage={comparison.priceAnalysis?.savingsPercentage || 0}
+                        matchConfidence={comparison.matchConfidence}
+                      />
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+              
+              {(detailedData?.total || 0) > itemsPerPage && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                  <Button
+                    disabled={currentPage === 0}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    sx={{ mr: 2 }}
+                  >
+                    Previous
+                  </Button>
+                  <Typography sx={{ mx: 2, display: 'flex', alignItems: 'center' }}>
+                    Page {currentPage + 1} of {Math.ceil((detailedData?.total || 0) / itemsPerPage)}
+                  </Typography>
+                  <Button
+                    disabled={currentPage >= Math.ceil((detailedData?.total || 0) / itemsPerPage) - 1}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    sx={{ ml: 2 }}
+                  >
+                    Next
+                  </Button>
+                </Box>
+              )}
+              
+              {comparisons.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 8 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    No price comparisons found
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Try adjusting your filters or refresh the data
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <DataGrid
+              rows={filteredSavings.map((item: SavingsOpportunity, index: number) => ({ id: index, ...item }))}
+              columns={savingsColumns}
+              pagination
+              pageSizeOptions={[25, 50, 100]}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 25 } },
+              }}
+              sx={{
+                height: 600,
+                border: 0,
+                '& .MuiDataGrid-cell:focus': {
+                  outline: 'none',
+                },
+              }}
+            />
+          )}
+        </Paper>
+      )}
 
       {/* Retailer Competitiveness Analysis */}
       <Paper sx={{ p: 3 }}>
@@ -375,7 +543,7 @@ export default function PriceComparisons() {
           </Box>
         ) : competitivenessData ? (
           <Grid container spacing={2}>
-            {Object.entries(competitivenessData).map(([category, retailers]) => (
+            {Object.entries(competitivenessData as RetailerCompetitiveness).map(([category, retailers]) => (
               <Grid item xs={12} md={6} lg={4} key={category}>
                 <Fade in timeout={300}>
                   <Card variant="outlined">
@@ -386,7 +554,7 @@ export default function PriceComparisons() {
                       
                       <Stack spacing={1}>
                         {Object.entries(retailers)
-                          .sort(([,a], [,b]) => b.competitiveness_score - a.competitiveness_score)
+                          .sort(([,a], [,b]) => (b as any).competitiveness_score - (a as any).competitiveness_score)
                           .map(([retailerCode, data], index) => (
                             <Zoom in timeout={300 + index * 100} key={retailerCode}>
                               <Box
@@ -425,7 +593,7 @@ export default function PriceComparisons() {
                                   fontWeight="bold"
                                   color={index === 0 ? 'success.main' : 'text.secondary'}
                                 >
-                                  {data.competitiveness_score.toFixed(1)}%
+                                  {(data as any).competitiveness_score?.toFixed(1) || '0.0'}%
                                 </Typography>
                               </Box>
                             </Zoom>

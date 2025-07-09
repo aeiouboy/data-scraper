@@ -205,10 +205,10 @@ LOG_LEVEL=debug
 @pytest.fixture
 def api_client(mock_supabase_service):
     """FastAPI test client with mocked dependencies"""
-    from app.api.main import app
-    from app.api.routers.products import get_supabase
-    from app.api.routers.scraping import get_supabase as get_supabase_scraping
-    from app.api.routers.analytics import get_supabase as get_supabase_analytics
+    from src.api.main import app
+    from src.api.routers.products import get_supabase
+    from src.api.routers.scraping import get_supabase as get_supabase_scraping
+    from src.api.routers.analytics import get_supabase as get_supabase_analytics
     
     # Override dependencies
     app.dependency_overrides[get_supabase] = lambda: mock_supabase_service

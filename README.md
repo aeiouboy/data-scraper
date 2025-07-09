@@ -1,160 +1,295 @@
-# HomePro Scraper
+# RIS Data Scrap
 
-Web scraping system for HomePro products using Firecrawl API and Supabase.
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104%2B-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18%2B-61dafb.svg)](https://reactjs.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Features
+A comprehensive web scraping and price comparison system for Thai home improvement retailers.
 
-- 🚀 High-performance scraping with Firecrawl API
-- 📊 Real-time data storage in Supabase
-- 🔄 Automatic price tracking and history
-- 🎯 Smart rate limiting and retry logic
-- 📈 Built-in analytics and monitoring
-- 🇹🇭 Thai language support
+## 🚀 Features
 
-## Quick Start
+- **Multi-Retailer Scraping**: Automated data collection from major Thai retailers
+- **Smart Product Matching**: AI-powered cross-retailer product matching with confidence scoring
+- **Price Tracking**: Historical price tracking and analysis
+- **Real-time Monitoring**: Category and product availability monitoring
+- **RESTful API**: FastAPI-based backend with comprehensive endpoints
+- **Modern UI**: React-based dashboard for data visualization and management
 
-### 1. Setup
+## 📋 Table of Contents
+
+- [Architecture](#architecture)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API Documentation](#api-documentation)
+- [Development](#development)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
+
+## 🏗 Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   React UI      │────▶│   FastAPI       │────▶│   PostgreSQL    │
+│   (Frontend)    │     │   (Backend)     │     │   (Supabase)    │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                               │
+                               ▼
+                        ┌─────────────────┐
+                        │  Firecrawl API  │
+                        │  (Scraping)     │
+                        └─────────────────┘
+```
+
+## 🚀 Quick Start
 
 ```bash
-# Install dependencies
-python3 setup.py
+# Clone the repository
+git clone https://github.com/yourusername/ris-data-scrap.git
+cd ris-data-scrap
 
-# Activate virtual environment
+# Run setup
+make setup
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Run everything
+make run-all
+```
+
+Visit:
+- Frontend: http://localhost:3000
+- API Docs: http://localhost:8001/docs
+
+## 📦 Installation
+
+### Prerequisites
+
+- Python 3.8+
+- Node.js 16+
+- PostgreSQL (or Supabase account)
+- Firecrawl API key
+
+### Backend Setup
+
+```bash
+# Create virtual environment
+python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up database
+python scripts/setup/create_schema.py
 ```
 
-### 2. Configure
-
-1. Copy `.env.example` to `.env`
-2. Add your credentials:
-   - Supabase URL and keys
-   - Firecrawl API key
-
-### 3. Initialize Database
-
-Run the SQL script in your Supabase SQL Editor:
-```sql
--- Copy contents from scripts/create_schema.sql
-```
-
-### 4. Test Connection
+### Frontend Setup
 
 ```bash
-python3 -m app.test_connection
+cd frontend
+npm install
 ```
 
-## Usage
+## ⚙️ Configuration
 
-### CLI Commands
+### Environment Variables
 
-**Important**: Always activate the virtual environment first:
+Create a `.env` file in the root directory:
+
+```env
+# Application
+ENVIRONMENT=development
+APP_NAME="RIS Data Scrap"
+
+# Database
+SUPABASE_URL=your-supabase-url
+SUPABASE_KEY=your-supabase-key
+
+# API Keys
+FIRECRAWL_API_KEY=your-firecrawl-key
+
+# Server
+HOST=0.0.0.0
+PORT=8001
+```
+
+### Retailer Configuration
+
+Supported retailers are configured in `app/config/retailers.py`:
+- HomePro (HP)
+- Thai Watsadu (TWD)
+- Global House (GH)
+- DoHome (DH)
+- Boonthavorn (BT)
+- MegaHome (MH)
+
+## 🔧 Usage
+
+### Running the API Server
+
 ```bash
-cd "/Users/chongraktanaka/Documents/Project/ris data scrap"
-source venv/bin/activate
+# Development mode with auto-reload
+make run-api
+
+# Or directly
+python run_api.py
 ```
 
-Then run commands using `python3`:
+### Running the Frontend
+
 ```bash
-# Scrape a single product
-python3 scrape.py product https://www.homepro.co.th/p/12345
+# Development server
+make run-frontend
 
-# Scrape an entire category
-python3 scrape.py category https://www.homepro.co.th/c/electrical --max-pages 5
-
-# Discover product URLs
-python3 scrape.py discover https://www.homepro.co.th/c/tools
-
-# Show statistics
-python3 scrape.py stats
-
-# Search products
-python3 scrape.py search "drill" --limit 20
+# Or directly
+cd frontend && npm start
 ```
 
-### Python API
+### Scraping Products
 
-```python
-from app.core.scraper import HomeProScraper
-
-# Initialize scraper
-scraper = HomeProScraper()
-
-# Scrape single product
-product = await scraper.scrape_single_product("https://www.homepro.co.th/p/12345")
-
-# Scrape category
-results = await scraper.scrape_category("https://www.homepro.co.th/c/electrical")
-```
-
-## Architecture
-
-```
-app/
-├── core/
-│   ├── scraper.py         # Main orchestrator
-│   └── data_processor.py  # Data validation
-├── services/
-│   ├── firecrawl_client.py  # Firecrawl API
-│   └── supabase_service.py  # Database operations
-└── models/
-    └── product.py         # Data models
-```
-
-## Performance
-
-- **Scraping Speed**: 500+ products/hour
-- **Success Rate**: >95% with retry logic
-- **Rate Limiting**: 30 requests/minute (configurable)
-- **Concurrent Scraping**: Up to 5 parallel requests
-
-## Database Schema
-
-### Products Table
-- Product details (SKU, name, brand, category)
-- Pricing information with history tracking
-- Features and specifications (JSONB)
-- Availability status
-
-### Analytics Views
-- `product_stats`: Overview statistics
-- `daily_scrape_stats`: Daily performance metrics
-
-## Monitoring
-
-Track scraping performance with built-in analytics:
-- Total products scraped
-- Success/failure rates
-- Price change alerts
-- Category distribution
-
-## Development
-
-### Running Tests
 ```bash
-pytest tests/
+# Scrape all retailers
+make scrape-all
+
+# Scrape specific retailer
+python scrape.py --retailer HP --category "power-tools" --limit 100
+
+# Run with monitoring
+python scrape_multi_retailer.py --retailers HP TWD --monitor
 ```
 
-### Code Quality
+### Product Matching
+
 ```bash
-black app/
-flake8 app/
-mypy app/
+# Run matching algorithm
+make run-matching
+
+# Or directly
+python improve_matching_algorithm.py
 ```
 
-## Deployment
+## 📚 API Documentation
 
-### Docker
+### Key Endpoints
+
+#### Products
+- `GET /api/products` - List products with filtering
+- `GET /api/products/{id}` - Get product details
+- `POST /api/products/search` - Advanced search
+
+#### Price Comparisons
+- `GET /api/price-comparisons-v2/detailed-comparisons` - Get price comparisons
+- `GET /api/price-comparisons-v2/categories-with-savings` - Categories with savings
+
+#### Scraping
+- `POST /api/scraping/jobs` - Create scraping job
+- `GET /api/scraping/jobs/{id}` - Get job status
+
+Full API documentation available at http://localhost:8001/docs
+
+## 🛠 Development
+
+### Code Style
+
 ```bash
-docker build -t homepro-scraper .
-docker run -d --env-file .env homepro-scraper
+# Format code
+make format
+
+# Run linters
+make lint
 ```
 
-### Production Checklist
-- [ ] Set up Supabase RLS policies
-- [ ] Configure monitoring alerts
-- [ ] Set up backup schedules
-- [ ] Deploy with proper secrets management
+### Project Structure
 
-## License
+```
+ris-data-scrap/
+├── app/               # Backend application
+│   ├── api/          # API endpoints
+│   ├── core/         # Core functionality
+│   ├── models/       # Data models
+│   ├── scrapers/     # Retailer scrapers
+│   └── services/     # Business logic
+├── frontend/          # React frontend
+├── tests/            # Test suites
+├── scripts/          # Utility scripts
+├── logs/             # Application logs
+└── docs/             # Documentation
+```
 
-MIT
+## 🧪 Testing
+
+```bash
+# Run all tests
+make test
+
+# Run specific test types
+make test-unit
+make test-integration
+make test-e2e
+
+# With coverage
+pytest --cov=app tests/
+```
+
+## 🚀 Deployment
+
+### Docker Deployment
+
+```bash
+# Build containers
+docker-compose build
+
+# Run services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+```
+
+### Production Deployment
+
+1. Set environment to production in `.env`
+2. Configure proper database credentials
+3. Set up reverse proxy (nginx)
+4. Enable HTTPS
+5. Configure monitoring
+
+See [Deployment Guide](docs/deployment/DEPLOYMENT.md) for detailed instructions.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [FastAPI](https://fastapi.tiangolo.com/) for the amazing web framework
+- [React](https://reactjs.org/) for the UI library
+- [Supabase](https://supabase.io/) for the database platform
+- [Firecrawl](https://firecrawl.com/) for web scraping infrastructure
+
+## 📞 Support
+
+- Documentation: [docs/](docs/)
+- Issues: [GitHub Issues](https://github.com/yourusername/ris-data-scrap/issues)
+- Email: support@example.com
+
+---
+
+Made with ❤️ for the Thai retail community

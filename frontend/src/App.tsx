@@ -8,6 +8,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import PriceComparisons from './pages/PriceComparisons';
+import PriceComparisonsOptimized from './pages/PriceComparisonsOptimized';
 import Scraping from './pages/Scraping';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
@@ -64,7 +65,8 @@ function App() {
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
-                  <Route path="/price-comparisons" element={<PriceComparisons />} />
+                  <Route path="/price-comparisons" element={<PriceComparisonsOptimized />} />
+                  <Route path="/price-comparisons-legacy" element={<PriceComparisons />} />
                   <Route path="/scraping" element={<Scraping />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/monitoring" element={<Monitoring />} />

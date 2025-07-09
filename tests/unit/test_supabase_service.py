@@ -3,7 +3,7 @@ Unit tests for SupabaseService class
 """
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
-from app.services.supabase_service import SupabaseService
+from src.services.supabase_service import SupabaseService
 
 
 class TestSupabaseService:
@@ -20,7 +20,7 @@ class TestSupabaseService:
     @pytest.mark.asyncio
     async def test_upsert_product_success(self, test_product_data):
         """Test successful product upsert"""
-        from app.models.product import Product
+        from src.models.product import Product
         
         # Create product instance
         product = Product(**test_product_data)
@@ -41,7 +41,7 @@ class TestSupabaseService:
     @pytest.mark.asyncio
     async def test_upsert_product_failure(self, test_product_data):
         """Test product upsert failure"""
-        from app.models.product import Product
+        from src.models.product import Product
         
         product = Product(**test_product_data)
         
@@ -235,7 +235,7 @@ class TestSupabaseService:
     @pytest.mark.asyncio
     async def test_batch_upsert_products_success(self, test_product_data):
         """Test successful batch product upsert"""
-        from app.models.product import Product
+        from src.models.product import Product
         
         products = [Product(**test_product_data) for _ in range(3)]
         

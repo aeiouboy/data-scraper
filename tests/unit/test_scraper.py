@@ -3,7 +3,7 @@ Unit tests for HomeProScraper class
 """
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
-from app.core.scraper import HomeProScraper
+from src.core.scraper import HomeProScraper
 
 
 class TestHomeProScraper:

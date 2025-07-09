@@ -7,7 +7,7 @@ from unittest.mock import Mock, AsyncMock, patch
 import httpx
 from datetime import datetime, timedelta
 
-from app.services.firecrawl_client import FirecrawlClient, RateLimiter
+from src.services.firecrawl_client import FirecrawlClient, RateLimiter
 
 
 class TestRateLimiter:

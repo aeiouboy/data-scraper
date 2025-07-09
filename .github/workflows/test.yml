@@ -41,21 +41,21 @@ jobs:
         pip install bandit safety flake8 mypy black isort
     
     - name: Code formatting check (Black)
-      run: black --check --diff app tests
+      run: black --check --diff src tests
     
     - name: Import sorting check (isort)
-      run: isort --check-only --diff app tests
+      run: isort --check-only --diff src tests
     
     - name: Lint with flake8
       run: |
-        flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 app tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     
     - name: Type checking with mypy
-      run: mypy app --ignore-missing-imports --no-strict-optional
+      run: mypy src --ignore-missing-imports --no-strict-optional
     
     - name: Security scan with bandit
-      run: bandit -r app -f json -o bandit-report.json || true
+      run: bandit -r src -f json -o bandit-report.json || true
     
     - name: Upload bandit report
       uses: actions/upload-artifact@v3
@@ -124,7 +124,7 @@ jobs:
         ENV_FILE: .env.test
       run: |
         python -m pytest tests/unit/ \
-          --cov=app \
+          --cov=src \
           --cov-report=xml:coverage.xml \
           --cov-report=html:htmlcov \
           --cov-report=term-missing \
@@ -227,7 +227,7 @@ jobs:
         ENV_FILE: .env.integration
       run: |
         python -m pytest tests/integration/ \
-          --cov=app \
+          --cov=src \
           --cov-append \
           --cov-report=xml:integration-coverage.xml \
           --junitxml=integration-junit.xml \
@@ -337,7 +337,7 @@ jobs:
         ENV_FILE: .env.e2e
       run: |
         cd /
-        python -m uvicorn app.api.main:app --host 0.0.0.0 --port 8000 &
+        python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 &
         sleep 10
     
     - name: Start frontend server

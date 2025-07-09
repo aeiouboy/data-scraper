@@ -1,0 +1,347 @@
+INFO:     Will watch for changes in these directories: ['/Users/chongraktanaka/Documents/Project/ris data scrap']
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [79371] using WatchFiles
+INFO:     Started server process [79373]
+INFO:     Waiting for application startup.
+2025-07-02 12:54:33,319 - app.api.main - INFO - Starting HomePro Product Manager API
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-07-02 12:54:55,370 - app.api.main - INFO - Shutting down HomePro Product Manager API
+INFO:     Application shutdown complete.
+INFO:     Finished server process [79373]
+INFO:     Stopping reloader process [79371]
+INFO:     Will watch for changes in these directories: ['/Users/chongraktanaka/Documents/Project/ris data scrap']
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [79434] using WatchFiles
+INFO:     Started server process [79436]
+INFO:     Waiting for application startup.
+2025-07-02 12:55:07,482 - app.api.main - INFO - Starting HomePro Product Manager API
+INFO:     Application startup complete.
+2025-07-02 12:55:13,203 - watchfiles.main - INFO - 4 changes detected
+2025-07-02 12:55:24,568 - watchfiles.main - INFO - 4 changes detected
+2025-07-02 12:55:43,416 - watchfiles.main - INFO - 4 changes detected
+2025-07-02 12:56:07,290 - watchfiles.main - INFO - 1 change detected
+2025-07-02 12:56:10,724 - watchfiles.main - INFO - 1 change detected
+2025-07-02 12:56:14,158 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 12:56:14,471 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 12:56:14,763 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 12:56:15,054 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 12:56:15,286 - watchfiles.main - INFO - 2 changes detected
+2025-07-02 12:56:15,342 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 12:56:15,652 - watchfiles.main - INFO - 5 changes detected
+2025-07-02 12:56:16,011 - watchfiles.main - INFO - 3 changes detected
+2025-07-02 12:56:16,152 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64145 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64147 - "GET /api/retailers HTTP/1.1" 200 OK
+2025-07-02 12:56:16,507 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 12:56:16,514 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 12:56:16,852 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64151 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 12:56:21,679 - watchfiles.main - INFO - 4 changes detected
+2025-07-02 12:56:47,334 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 12:56:47,633 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 12:56:47,935 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 12:56:48,219 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 12:56:48,516 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 12:56:48,815 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64219 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 12:56:49,165 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 12:56:49,166 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 12:56:49,474 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64232 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 12:57:15,268 - watchfiles.main - INFO - 1 change detected
+2025-07-02 12:57:15,955 - watchfiles.main - INFO - 3 changes detected
+2025-07-02 12:57:17,563 - watchfiles.main - INFO - 1 change detected
+2025-07-02 12:57:19,976 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 12:57:20,274 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 12:57:20,324 - watchfiles.main - INFO - 1 change detected
+2025-07-02 12:57:20,576 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 12:57:20,687 - watchfiles.main - INFO - 2 changes detected
+2025-07-02 12:57:20,866 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 12:57:21,157 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 12:57:21,569 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64260 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 12:57:21,918 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 12:57:21,920 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 12:57:22,290 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64263 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 12:57:52,288 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 12:57:52,623 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 12:57:52,941 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 12:57:53,263 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 12:57:53,619 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 12:57:53,929 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64271 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 12:57:54,285 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 12:57:54,289 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 12:57:54,579 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64274 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 12:58:24,858 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 12:58:25,154 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 12:58:25,474 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 12:58:25,774 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 12:58:26,066 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 12:58:26,389 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64283 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 12:58:26,743 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 12:58:26,745 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 12:58:27,037 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64286 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 12:58:57,055 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 12:58:57,437 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 12:58:57,747 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 12:58:58,052 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 12:58:58,411 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 12:58:58,754 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64296 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 12:58:59,271 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 12:58:59,274 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 12:58:59,686 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64299 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 12:59:29,357 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 12:59:29,666 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 12:59:29,979 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 12:59:30,309 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 12:59:30,614 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 12:59:30,930 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64323 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 12:59:31,288 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 12:59:31,290 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 12:59:31,598 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64326 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:00:01,586 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:00:01,911 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:00:02,245 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:00:02,643 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:00:02,975 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:00:03,466 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64336 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:00:03,822 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:00:03,825 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:00:04,185 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64339 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:00:15,999 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:00:16,678 - watchfiles.main - INFO - 3 changes detected
+2025-07-02 13:00:20,640 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:00:23,556 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:00:23,920 - watchfiles.main - INFO - 2 changes detected
+2025-07-02 13:00:34,449 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:00:34,803 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:00:35,112 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:00:35,419 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:00:35,723 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:00:36,014 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64346 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:00:36,383 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:00:36,385 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:00:36,682 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64349 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:01:06,631 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:01:06,946 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:01:07,288 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:01:07,680 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:01:08,103 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:01:08,418 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64363 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:01:08,785 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:01:08,787 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:01:09,124 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64366 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:01:39,047 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:01:39,367 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:01:39,665 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:01:39,966 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:01:40,254 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:01:40,546 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64399 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:01:40,910 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:01:40,911 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:01:41,207 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64402 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:02:11,152 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:02:11,491 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:02:11,797 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:02:12,097 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:02:12,392 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:02:12,694 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64430 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:02:13,047 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:02:13,048 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:02:13,342 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64433 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:02:44,001 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:02:44,308 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:02:44,602 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:02:44,891 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:02:45,190 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:02:45,498 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64444 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:02:45,839 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:02:45,841 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:02:46,127 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64447 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:03:16,089 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:03:16,383 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:03:16,690 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:03:16,860 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:03:16,981 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:03:17,283 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:03:17,557 - watchfiles.main - INFO - 3 changes detected
+2025-07-02 13:03:17,572 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64455 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:03:17,908 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:03:17,910 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:03:18,200 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64458 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:03:23,944 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:03:26,888 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:03:27,262 - watchfiles.main - INFO - 2 changes detected
+2025-07-02 13:03:48,152 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:03:48,580 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:03:48,882 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:03:49,216 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:03:49,601 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:03:49,905 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64467 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:03:50,262 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:03:50,265 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:03:50,626 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64470 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:04:20,759 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:04:21,069 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:04:21,369 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:04:21,676 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:04:22,471 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:04:22,878 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64492 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:04:24,522 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:04:24,524 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:04:24,928 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64495 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:04:53,905 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:04:54,315 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:04:54,625 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:04:54,956 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:04:55,442 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:04:55,854 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64505 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:04:56,327 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:04:56,330 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:04:56,646 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64508 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:05:26,480 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:05:26,899 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:05:27,235 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:05:27,554 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:05:27,943 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:05:28,320 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64521 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:05:28,775 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:05:28,791 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:05:29,194 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64524 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:05:59,136 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:05:59,544 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:05:59,955 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:06:00,268 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:06:00,575 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:06:00,879 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64537 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:06:01,231 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:06:01,233 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:06:01,593 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64540 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:06:17,632 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:06:18,334 - watchfiles.main - INFO - 3 changes detected
+2025-07-02 13:06:27,286 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:06:30,167 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:06:30,536 - watchfiles.main - INFO - 2 changes detected
+2025-07-02 13:06:31,476 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:06:31,784 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:06:32,088 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:06:32,401 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:06:32,708 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:06:33,008 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64561 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:06:33,356 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:06:33,358 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:06:33,665 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64564 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:07:04,220 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:07:04,517 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:07:04,881 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:07:05,220 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:07:05,519 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:07:05,824 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64574 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:07:06,190 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:07:06,192 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:07:06,500 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64578 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:07:36,433 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:07:36,725 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:07:37,024 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:07:37,338 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:07:37,750 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:07:38,066 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64596 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:07:38,401 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:07:38,403 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:07:38,773 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64599 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:08:08,671 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:08:09,081 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:08:09,386 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:08:09,680 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:08:09,973 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:08:10,288 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64608 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:08:10,635 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:08:10,638 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:08:11,028 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64611 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:08:40,930 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:08:41,237 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:08:41,553 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:08:43,388 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:08:43,691 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:08:43,993 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64631 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:08:44,355 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:08:44,358 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:08:44,720 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64635 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:09:14,898 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:09:15,188 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:09:15,480 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:09:15,768 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:09:16,059 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:09:16,403 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64701 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:09:16,800 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:09:16,802 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:09:17,121 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64709 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+2025-07-02 13:09:18,418 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:09:19,057 - watchfiles.main - INFO - 3 changes detected
+2025-07-02 13:09:30,555 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:09:33,551 - watchfiles.main - INFO - 1 change detected
+2025-07-02 13:09:33,928 - watchfiles.main - INFO - 2 changes detected
+2025-07-02 13:09:47,006 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.HP "HTTP/2 200 OK"
+2025-07-02 13:09:47,389 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.TWD "HTTP/2 200 OK"
+2025-07-02 13:09:47,799 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.GH "HTTP/2 200 OK"
+2025-07-02 13:09:48,096 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.DH "HTTP/2 200 OK"
+2025-07-02 13:09:48,411 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.BT "HTTP/2 200 OK"
+2025-07-02 13:09:48,704 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id%2C%20current_price%2C%20availability%2C%20monitoring_tier%2C%20category%2C%20brand%2C%20scraped_at&retailer_code=eq.MH "HTTP/2 200 OK"
+INFO:     127.0.0.1:64735 - "GET /api/retailers/summary HTTP/1.1" 200 OK
+2025-07-02 13:09:49,078 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/products?select=id "HTTP/2 200 OK"
+2025-07-02 13:09:49,079 - app.api.routers.analytics - WARNING - Failed to get price data: 'SyncSelectRequestBuilder' object is not callable
+2025-07-02 13:09:49,370 - httpx - INFO - HTTP Request: GET https://vrrgsfxtmgzwsbbxxzrd.supabase.co/rest/v1/scrape_jobs?select=id "HTTP/2 200 OK"
+INFO:     127.0.0.1:64738 - "GET /api/analytics/dashboard?retailer_code=HP HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-07-02 13:10:02,407 - app.api.main - INFO - Shutting down HomePro Product Manager API
+INFO:     Application shutdown complete.
+INFO:     Finished server process [79436]
+INFO:     Stopping reloader process [79434]

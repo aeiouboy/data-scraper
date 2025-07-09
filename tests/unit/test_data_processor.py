@@ -3,8 +3,8 @@ Unit tests for DataProcessor class
 """
 import pytest
 from decimal import Decimal
-from app.core.data_processor import DataProcessor
-from app.models.product import Product
+from src.core.data_processor import DataProcessor
+from src.models.product import Product
 
 
 class TestDataProcessor:

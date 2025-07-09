@@ -437,9 +437,9 @@ export default function Products() {
                       </Box>
                     )}
                   >
-                    {categoriesData?.map((category: any) => (
-                      <MenuItem key={category.id} value={category.id}>
-                        {category.name}
+                    {categoriesData?.map((category: string) => (
+                      <MenuItem key={category} value={category}>
+                        {category}
                       </MenuItem>
                     ))}
                   </Select>
