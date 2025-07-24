@@ -21,8 +21,8 @@ RUN apt-get update && apt-get install -y \
 # Upgrade pip and install build tools
 RUN pip install --upgrade pip setuptools wheel
 
-# Copy lightweight requirements and install dependencies
-COPY requirements-docker.txt requirements.txt
+# Copy minimal requirements and install dependencies  
+COPY requirements-minimal.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code

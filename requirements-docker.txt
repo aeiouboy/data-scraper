@@ -29,8 +29,8 @@ fastapi==0.109.0
 uvicorn[standard]==0.27.0
 
 # Task queue (optional for basic deployment)
-celery[redis]==5.3.4
-redis==5.0.1
+celery[redis]>=5.3.0
+redis>=4.5.2,<5.0.0
 
 # Monitoring
 prometheus-client==0.19.0
