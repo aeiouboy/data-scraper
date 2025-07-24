@@ -16,17 +16,18 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-# Import and configure logging
-from config.logging_config import configure_all_loggers
-
-# Configure logging
+# Configure basic logging for Railway
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-# Set up file logging
-configure_all_loggers()
+# Import config logging if available
+try:
+    from config.logging_config import configure_all_loggers
+    configure_all_loggers()
+except ImportError:
+    logging.warning("Advanced logging config not available, using basic logging")
 
 def main():
     """Run the FastAPI application."""
@@ -34,6 +35,13 @@ def main():
     environment = os.getenv("ENVIRONMENT", "development")
     port = int(os.getenv("PORT", 8001))  # Railway/Render use different defaults
     host = os.getenv("HOST", "0.0.0.0")
+    
+    # Log startup information
+    logging.info(f"Starting API server:")
+    logging.info(f"  Environment: {environment}")
+    logging.info(f"  Host: {host}")
+    logging.info(f"  Port: {port}")
+    logging.info(f"  Health check available at: http://{host}:{port}/health")
     
     # Uvicorn settings based on environment
     if environment == "development":

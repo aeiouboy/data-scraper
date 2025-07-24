@@ -76,6 +76,7 @@ async def root():
     return {
         "message": "HomePro Product Manager API",
         "version": "1.0.0",
+        "status": "healthy",
         "endpoints": {
             "products": "/api/products",
             "scraping": "/api/scraping",
