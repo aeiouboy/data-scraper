@@ -11,6 +11,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# CRITICAL: Clear proxy variables BEFORE any imports that might create HTTP clients
+from src.utils.proxy_manager import ProxyManager
+ProxyManager.clear_all_proxy_vars()
+
 # Configure logging for Railway
 logging.basicConfig(
     level=logging.INFO,
@@ -25,16 +29,8 @@ def main():
     try:
         import uvicorn
         
-        # Clear any proxy environment variables that might interfere with clients
-        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']
-        cleared_vars = []
-        for var in proxy_vars:
-            if var in os.environ:
-                cleared_vars.append(f"{var}={os.environ[var]}")
-                del os.environ[var]
-        
-        if cleared_vars:
-            logger.info(f"🔧 Cleared proxy environment variables: {', '.join(cleared_vars)}")
+        # Ensure proxy variables are cleared (redundant safety check)
+        ProxyManager.clear_all_proxy_vars()
         
         # Railway-specific environment settings
         environment = os.getenv("ENVIRONMENT", "production")
