@@ -11,6 +11,7 @@ import os
 from src.api.routers import products, scraping, analytics, config, retailers, price_comparisons, price_comparisons_v2, monitoring, categories, schedules, matching, matching_ultra_strict, price_comparisons_v2_fixed, price_comparisons_v3_enhanced, price_comparisons_v2_optimized
 from src.services.supabase_service import SupabaseService
 from src.core.logging_config import setup_logging
+from src.utils.proxy_manager import ProxyManager
 
 # Configure logging for console output
 setup_logging(level=os.getenv("LOG_LEVEL", "INFO"))
@@ -24,8 +25,20 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting HomePro Product Manager API")
     
+    # CRITICAL: Clear proxy variables before creating any services
+    logger.info("🔧 Clearing proxy variables before service initialization")
+    ProxyManager.clear_all_proxy_vars()
+    
     # Initialize services
-    app.state.supabase = SupabaseService()
+    try:
+        logger.info("📦 Creating SupabaseService instance")
+        app.state.supabase = SupabaseService()
+        logger.info("✅ SupabaseService created successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to create SupabaseService: {e}")
+        if 'proxy' in str(e).lower():
+            logger.error("🔍 Proxy-related error detected in service creation!")
+        raise
     
     yield
     
