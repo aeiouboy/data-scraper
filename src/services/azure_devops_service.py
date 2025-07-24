@@ -10,6 +10,7 @@ This service provides integration with Azure DevOps API for:
 
 import json
 import logging
+import os
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 import httpx
@@ -95,10 +96,27 @@ class AzureDevOpsService:
         self.auth_header = self._create_auth_header()
         
         # HTTP client with timeout and retry configuration
-        self.client = httpx.AsyncClient(
-            timeout=30.0,
-            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
-        )
+        # Temporarily clear proxy environment variables to avoid proxy parameter errors
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']
+        original_values = {}
+        
+        try:
+            # Save original values and clear proxy vars
+            for var in proxy_vars:
+                if var in os.environ:
+                    original_values[var] = os.environ[var]
+                    del os.environ[var]
+            
+            # Create client without proxy interference
+            self.client = httpx.AsyncClient(
+                timeout=30.0,
+                limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
+            )
+            
+        finally:
+            # Restore original proxy environment variables
+            for var, value in original_values.items():
+                os.environ[var] = value
     
     def _create_auth_header(self) -> Dict[str, str]:
         """Create authentication header for Azure DevOps API"""

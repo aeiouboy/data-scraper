@@ -25,6 +25,17 @@ def main():
     try:
         import uvicorn
         
+        # Clear any proxy environment variables that might interfere with clients
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']
+        cleared_vars = []
+        for var in proxy_vars:
+            if var in os.environ:
+                cleared_vars.append(f"{var}={os.environ[var]}")
+                del os.environ[var]
+        
+        if cleared_vars:
+            logger.info(f"🔧 Cleared proxy environment variables: {', '.join(cleared_vars)}")
+        
         # Railway-specific environment settings
         environment = os.getenv("ENVIRONMENT", "production")
         port = int(os.getenv("PORT", 8000))  # Railway uses PORT env var
