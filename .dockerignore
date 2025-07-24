@@ -1,0 +1,65 @@
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.pytest_cache
+
+# Development
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Node.js (frontend)
+frontend/node_modules
+frontend/build
+frontend/.env.local
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests
+tests/
+*.test.py
+pytest.ini
+
+# Data and logs
+data/
+logs/
+*.log
+nohup.out
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deployment configs for other platforms
+render.yaml
+fly.toml
+railway.json
+app.json
+.do/
+.ebextensions/
+nixpacks.toml
+Procfile
+start.sh

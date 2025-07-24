@@ -1,31 +1,26 @@
-# Use Python 3.11 with pre-compiled scientific packages
-FROM python:3.11
+# Lightweight Dockerfile for basic deployment
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for ML/scientific packages
+# Install minimal system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    gfortran \
-    libopenblas-dev \
-    liblapack-dev \
+    make \
     libffi-dev \
     libssl-dev \
     python3-dev \
-    build-essential \
-    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install build tools
+# Upgrade pip
 RUN pip install --upgrade pip setuptools wheel
 
-# Install scientific packages first (they take longest)
-RUN pip install --no-cache-dir numpy==1.24.0 scipy==1.10.0
+# Copy lightweight requirements
+COPY requirements-docker.txt requirements.txt
 
-# Copy requirements and install remaining dependencies
-COPY requirements.txt .
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
