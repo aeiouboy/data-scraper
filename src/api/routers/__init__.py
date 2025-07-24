@@ -11,8 +11,7 @@ from . import (
     monitoring,
     categories,
     schedules,
-    matching,
-    price_comparisons_advanced
+    matching
 )
 
 __all__ = [
@@ -27,6 +26,5 @@ __all__ = [
     'monitoring',
     'categories',
     'schedules',
-    'matching',
-    'price_comparisons_advanced'
+    'matching'
 ]
