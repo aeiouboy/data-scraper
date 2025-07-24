@@ -37,5 +37,5 @@ ENV PORT=8080
 # Expose port
 EXPOSE 8080
 
-# Run the application
-CMD ["python", "run_api.py"]
+# Run the application with Railway-specific startup script
+CMD ["python", "railway_start.py"]
