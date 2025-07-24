@@ -27,10 +27,14 @@ logger = logging.getLogger(__name__)
 def main():
     """Start the FastAPI application for Railway deployment"""
     try:
-        import uvicorn
+        logger.info("🔧 Starting Railway deployment process...")
         
         # Ensure proxy variables are cleared (redundant safety check)
         ProxyManager.clear_all_proxy_vars()
+        
+        logger.info("📦 Importing uvicorn...")
+        import uvicorn
+        logger.info("✅ uvicorn imported successfully")
         
         # Railway-specific environment settings
         environment = os.getenv("ENVIRONMENT", "production")
@@ -45,7 +49,19 @@ def main():
         logger.info(f"🌍 API will be available at: http://{host}:{port}")
         logger.info("=" * 50)
         
+        # Import the FastAPI app to check for import errors
+        logger.info("📦 Importing FastAPI app...")
+        try:
+            from src.api.main import app
+            logger.info("✅ FastAPI app imported successfully")
+        except Exception as import_error:
+            logger.error(f"❌ Failed to import FastAPI app: {import_error}")
+            import traceback
+            traceback.print_exc()
+            raise
+        
         # Railway production settings
+        logger.info("🚀 Starting uvicorn server...")
         uvicorn.run(
             "src.api.main:app",
             host=host,
@@ -60,6 +76,17 @@ def main():
         
     except Exception as e:
         logger.error(f"❌ Failed to start API server: {str(e)}")
+        logger.error("📍 FULL ERROR TRACEBACK:")
+        import traceback
+        traceback.print_exc()
+        logger.error("📍 END TRACEBACK")
+        
+        # Additional error analysis
+        if 'proxy' in str(e).lower():
+            logger.error("🔍 PROXY ERROR DETECTED!")
+            logger.error(f"📊 Error type: {type(e).__name__}")
+            logger.error(f"📊 Error args: {getattr(e, 'args', 'No args')}")
+            
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -36,8 +36,15 @@ async def lifespan(app: FastAPI):
         logger.info("✅ SupabaseService created successfully")
     except Exception as e:
         logger.error(f"❌ Failed to create SupabaseService: {e}")
+        logger.error("📍 LIFESPAN ERROR TRACEBACK:")
+        import traceback
+        traceback.print_exc()
+        logger.error("📍 END LIFESPAN TRACEBACK")
+        
         if 'proxy' in str(e).lower():
             logger.error("🔍 Proxy-related error detected in service creation!")
+            logger.error(f"📊 Error type: {type(e).__name__}")
+            logger.error(f"📊 Error module: {type(e).__module__}")
         raise
     
     yield
