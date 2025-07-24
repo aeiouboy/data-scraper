@@ -1,0 +1,22 @@
+name: ris-data-scrap
+services:
+- environment_slug: python
+  github:
+    branch: feature/comprehensive-testing-framework
+    deploy_on_push: true
+    repo: aeiouboy/data-scraper
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: api
+  routes:
+  - path: /
+  run_command: python run_api.py
+  source_dir: /
+  envs:
+  - key: ENVIRONMENT
+    value: production
+  - key: HOST
+    value: 0.0.0.0
+  - key: PORT
+    value: "8080"

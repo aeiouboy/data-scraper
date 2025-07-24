@@ -32,7 +32,7 @@ def main():
     """Run the FastAPI application."""
     # Environment settings
     environment = os.getenv("ENVIRONMENT", "development")
-    port = int(os.getenv("PORT", 8001))  # Default 8001 to avoid conflict with OMS
+    port = int(os.getenv("PORT", 8001))  # Railway/Render use different defaults
     host = os.getenv("HOST", "0.0.0.0")
     
     # Uvicorn settings based on environment

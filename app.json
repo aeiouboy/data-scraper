@@ -1,0 +1,30 @@
+{
+  "name": "RIS Data Scrap API",
+  "description": "Web scraping and price comparison API for Thai home improvement retailers",
+  "image": "heroku/python",
+  "repository": "https://github.com/aeiouboy/data-scraper",
+  "keywords": ["python", "fastapi", "web-scraping", "price-comparison"],
+  "stack": "heroku-22",
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "env": {
+    "ENVIRONMENT": {
+      "value": "production"
+    },
+    "HOST": {
+      "value": "0.0.0.0"
+    },
+    "PYTHON_VERSION": {
+      "value": "3.11.7"
+    }
+  }
+}
