@@ -9,9 +9,9 @@ import sys
 from pathlib import Path
 
 # Add project root to path
-sys.path.append(str(Path(__file__).parent))
+sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.core.scraper import HomeProScraper
+from src.scrapers.homepro_scraper import HomeProScraper
 from src.services.supabase_service import SupabaseService
 
 

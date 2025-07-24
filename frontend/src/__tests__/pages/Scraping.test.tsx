@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '../../test-utils';
+import { render, screen, waitFor } from '../../test-utils';
 import Scraping from '../../pages/Scraping';
 import * as api from '../../services/api';
 import { setupAllApiMocks } from '../../test-utils/mockHelpers';

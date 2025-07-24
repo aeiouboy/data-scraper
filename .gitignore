@@ -41,3 +41,20 @@ Thumbs.db
 data/
 temp/
 backups/
+# Backup files
+backup_*.json
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+data/temp/
+
+# Import files
+import_log.txt
+processed_import_data.json
+
+# Organization scripts (temporary)
+organize_*.py
+complete_organization.sh

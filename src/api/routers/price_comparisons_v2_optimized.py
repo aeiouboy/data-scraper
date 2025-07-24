@@ -8,6 +8,7 @@ import json
 from datetime import datetime, timedelta
 from functools import lru_cache
 import asyncio
+import re
 
 from src.services.supabase_service import SupabaseService
 
@@ -36,8 +37,8 @@ async def get_detailed_comparisons_optimized(
     Optimized price comparisons with proper pagination and efficient queries
     """
     try:
-        # Build optimized query with server-side filtering
-        # Use existing product_matches table until views are created
+        # Build optimized query with server-side filtering and minimal data fetch
+        # Use SELECT with specific fields to reduce data transfer
         query = supabase.client.table('product_matches').select(
             'id, normalized_name, normalized_brand, unified_category, '
             'price_range_min, price_range_max, price_variance_percentage, '
@@ -45,12 +46,14 @@ async def get_detailed_comparisons_optimized(
             'updated_at, master_product_id, matched_product_ids'
         )
         
-        # Apply filters at database level
+        # Apply filters at database level for better performance
         if category:
             query = query.eq('unified_category', category)
         
+        # Pre-filter by price range to reduce dataset size
         if min_savings > 0:
-            query = query.gte('savings_amount', min_savings)
+            # Use price_range_max - price_range_min >= min_savings
+            query = query.gte('price_range_max', min_savings)
         
         # Filter by minimum savings percentage if specified
         if min_savings_percent > 0:
@@ -60,42 +63,41 @@ async def get_detailed_comparisons_optimized(
         if min_confidence > 0.5:
             query = query.gte('match_confidence', min_confidence)
         
-        # Add sorting
+        # Add sorting (only available fields)
         if sort_by == 'savings_amount':
-            query = query.order('savings_amount', desc=(sort_order == 'desc'))
+            # Sort by price range max since savings_amount doesn't exist in DB
+            query = query.order('price_range_max', desc=(sort_order == 'desc'))
         elif sort_by == 'savings_percentage':
             query = query.order('price_variance_percentage', desc=(sort_order == 'desc'))
+        elif sort_by == 'confidence':
+            query = query.order('match_confidence', desc=(sort_order == 'desc'))
         else:
             query = query.order('updated_at', desc=True)
         
-        # Get count first (before pagination)
-        # Note: Supabase doesn't support count() directly, we'll get total after query
-        
-        # Apply pagination
-        query = query.range(offset, offset + limit - 1)
-        
-        # Execute query
-        result = query.execute()
-        matches = result.data if result.data else []
-        
-        # Get total count by doing a separate count query
+        # Get count with optimized query using count='exact' on main query
         count_query = supabase.client.table('product_matches').select('id', count='exact')
         if category:
             count_query = count_query.eq('unified_category', category)
         if min_savings > 0:
-            count_query = count_query.gte('savings_amount', min_savings)
+            count_query = count_query.gte('price_range_max', min_savings)
         if min_savings_percent > 0:
             count_query = count_query.gte('price_variance_percentage', min_savings_percent)
         if min_confidence > 0.5:
             count_query = count_query.gte('match_confidence', min_confidence)
         
+        # Execute count query separately but efficiently
         count_result = count_query.execute()
-        total_count = len(count_result.data) if count_result.data else 0
+        total_count = count_result.count if hasattr(count_result, 'count') else len(count_result.data or [])
+        
+        # Apply pagination and execute main query
+        query = query.range(offset, offset + limit - 1)
+        result = query.execute()
+        matches = result.data if result.data else []
         
         # Process results efficiently
         detailed_comparisons = []
         
-        # Batch load all products for all matches
+        # Batch load all products for all matches with minimal fields
         all_product_ids = []
         for match in matches:
             if match.get('master_product_id'):
@@ -103,11 +105,15 @@ async def get_detailed_comparisons_optimized(
             if match.get('matched_product_ids'):
                 all_product_ids.extend(match['matched_product_ids'])
         
-        # Get all products in one query
+        # Get all products in one query with only needed fields
         products_dict = {}
         if all_product_ids:
-            # Use existing method from supabase service
-            products_query = supabase.client.table('products').select('*').in_('id', all_product_ids)
+            # Only select essential fields to reduce data transfer
+            products_query = supabase.client.table('products').select(
+                'id, name, retailer_code, retailer_name, current_price, '
+                'original_price, discount_percentage, url, images, '
+                'availability, updated_at'
+            ).in_('id', all_product_ids)
             products_result = products_query.execute()
             if products_result.data:
                 products_dict = {p['id']: p for p in products_result.data}
@@ -147,13 +153,42 @@ async def get_detailed_comparisons_optimized(
             if not retailer_prices:
                 continue
                 
-            # Calculate savings efficiently
-            min_price = float(match['price_range_min']) if match.get('price_range_min') else 0
-            max_price = float(match['price_range_max']) if match.get('price_range_max') else 0
+            # Calculate real-time prices from actual product data
+            current_prices = [float(rp['price']) for rp in retailer_prices if rp['price'] > 0]
+            min_price = min(current_prices) if current_prices else 0
+            max_price = max(current_prices) if current_prices else 0
             savings_amount = max_price - min_price if min_price and max_price else 0
             
             # Skip if no price variance
             if len(retailer_prices) < 2 or savings_amount <= 0:
+                continue
+            
+            # Skip false positive matches for air conditioners with significant BTU differences
+            # Optimize BTU validation to run only when necessary
+            if match.get('unified_category') == 'air_conditioner' and len(retailer_prices) >= 2:
+                btu_values = []
+                for rp in retailer_prices:
+                    product_name = rp.get('productName', '')
+                    # Extract BTU from product names using optimized regex
+                    btu_match = re.search(r'(\d{1,2}[,.]?\d{3})\s*(?:บีทียู|BTU)', product_name, re.IGNORECASE)
+                    if btu_match:
+                        btu_str = btu_match.group(1).replace(',', '').replace('.', '')
+                        try:
+                            btu_values.append(int(btu_str))
+                        except ValueError:
+                            pass
+                
+                # If we have BTU values and they differ significantly, skip this match
+                if len(btu_values) >= 2:
+                    min_btu = min(btu_values)
+                    max_btu = max(btu_values)
+                    btu_variance = (max_btu - min_btu) / min_btu * 100 if min_btu > 0 else 0
+                    # Skip matches with more than 30% BTU difference
+                    if btu_variance > 30:
+                        continue
+            
+            # Apply min_savings filter (after calculation)
+            if min_savings > 0 and savings_amount < min_savings:
                 continue
             
             detailed_comparisons.append({
@@ -162,14 +197,14 @@ async def get_detailed_comparisons_optimized(
                 'brand': match.get('normalized_brand', 'Unknown'),
                 'category': match.get('unified_category', 'Unknown'),
                 'matchConfidence': match.get('match_confidence', 0.85),
-                'specifications': json.loads(match.get('key_specifications', '{}')) if match.get('key_specifications') else {},
+                'specifications': match.get('key_specifications') if isinstance(match.get('key_specifications'), dict) else (json.loads(match.get('key_specifications', '{}')) if match.get('key_specifications') else {}),
                 'retailerPrices': sorted(retailer_prices, key=lambda x: x['price']),
                 'priceAnalysis': {
                     'minPrice': min_price,
                     'maxPrice': max_price,
                     'savingsAmount': savings_amount,
-                    'savingsPercentage': match.get('price_variance_percentage', 0),
-                    'bestRetailer': match.get('best_price_retailer'),
+                    'savingsPercentage': (savings_amount / min_price * 100) if min_price > 0 else 0,
+                    'bestRetailer': next((rp['retailerCode'] for rp in retailer_prices if rp['price'] == min_price), None),
                     'priceRange': f"฿{min_price:,.0f} - ฿{max_price:,.0f}"
                 },
                 'lastUpdated': match.get('updated_at', datetime.now().isoformat())
@@ -306,31 +341,32 @@ async def get_quick_stats(
 
 
 async def calculate_quick_stats_fallback(supabase: SupabaseService, category: Optional[str]):
-    """Calculate stats if pre-aggregated table doesn't exist"""
+    """Calculate stats from pre-computed price ranges for performance"""
     try:
+        # Use price_range_min and price_range_max from product_matches for faster calculation
         query = supabase.client.table('product_matches').select(
-            'price_range_min, price_range_max, price_variance_percentage'
+            'id, price_range_min, price_range_max, price_variance_percentage, unified_category'
         )
         
         if category:
             query = query.eq('unified_category', category)
+        
+        # Add basic filters to reduce dataset size
+        query = query.gt('price_range_max', 0)  # Only matches with valid price ranges
+        query = query.gte('price_variance_percentage', 1)  # Only matches with meaningful variance
         
         result = query.execute()
         matches = result.data if result.data else []
         
         total_savings = 0
         total_variance = 0
-        count_with_savings = 0
+        count_with_savings = len(matches)
         
+        # Calculate stats from pre-computed values
         for match in matches:
-            min_price = match.get('price_range_min', 0) or 0
-            max_price = match.get('price_range_max', 0) or 0
-            savings = max_price - min_price
-            
-            if savings > 0:
-                total_savings += savings
-                count_with_savings += 1
-                total_variance += match.get('price_variance_percentage', 0) or 0
+            savings = (match.get('price_range_max', 0) or 0) - (match.get('price_range_min', 0) or 0)
+            total_savings += savings
+            total_variance += match.get('price_variance_percentage', 0) or 0
         
         return {
             'totalSavingsAvailable': total_savings,

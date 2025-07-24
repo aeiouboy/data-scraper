@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -21,10 +21,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   CircularProgress,
 } from '@mui/material';
 import {
@@ -36,11 +32,10 @@ import {
   Refresh as RefreshIcon,
   Search as SearchIcon,
   Analytics as AnalyticsIcon,
-  CompareArrows as CompareIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
-import { matchingApi, productApi, priceComparisonApi } from '../services/api';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { matchingApi } from '../services/api';
 import { useRetailer } from '../contexts/RetailerContext';
 
 interface TabPanelProps {
@@ -98,7 +93,7 @@ export default function PriceTrackingDashboard() {
   });
 
   // Fetch matching analytics
-  const { data: analyticsData, isLoading: loadingAnalytics, refetch: refetchAnalytics } = useQuery({
+  const { data: analyticsData, refetch: refetchAnalytics } = useQuery({
     queryKey: ['matching-analytics'],
     queryFn: async () => {
       try {

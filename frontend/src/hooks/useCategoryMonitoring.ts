@@ -105,7 +105,7 @@ interface RetailerStatsData {
 const fetchCategoryHealth = async (filters?: MonitoringFilters): Promise<CategoryHealth[]> => {
   // Note: The backend doesn't have a unified category health endpoint
   // We'll need to fetch from multiple endpoints and combine the data
-  const [statsResponse, changesResponse] = await Promise.all([
+  const [statsResponse] = await Promise.all([
     apiClient.get('/categories/stats'),
     apiClient.get('/categories/changes', { params: { days: 1 } })
   ]);

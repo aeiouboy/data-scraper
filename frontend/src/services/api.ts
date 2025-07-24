@@ -7,7 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout
+  timeout: 60000, // 60 second timeout for complex price comparison queries
 });
 
 // Request interceptor
@@ -156,8 +156,31 @@ export const priceComparisonApi = {
     api.post('/price-comparisons/matches', { master_product_id: masterProductId, matched_product_ids: matchedProductIds }),
   refreshMatches: () => api.post('/price-comparisons/refresh'),
   
+  // Enhanced matching endpoints with strict model validation
+  testMatch: (product1Name: string, product2Name: string, brand1?: string, brand2?: string) =>
+    api.post('/matching/test-match', { 
+      product1_name: product1Name, 
+      product2_name: product2Name, 
+      brand1, 
+      brand2 
+    }),
+  getMatchSuggestions: (productId: string, minConfidence: number = 0.5) =>
+    api.get(`/matching/match-suggestions/${productId}?min_confidence=${minConfidence}`),
+  confirmMatch: (product1Id: string, product2Id: string, isMatch: boolean, confidenceOverride?: number) =>
+    api.post('/matching/confirm-match', {
+      product1_id: product1Id,
+      product2_id: product2Id,
+      is_match: isMatch,
+      confidence_override: confidenceOverride
+    }),
+  getMatchingAnalytics: () => api.get('/matching/analytics'),
+  processNewProducts: (retailerCodes?: string[], limit: number = 100) =>
+    api.post('/matching/process-new-products', {}, { 
+      params: { retailer_codes: retailerCodes, limit } 
+    }),
+  
   // V2 endpoints with detailed data
-  getDetailedComparisons: (params?: { limit?: number; offset?: number; minSavings?: number; minSavingsPercent?: number; minConfidence?: number; category?: string }) => 
+  getDetailedComparisons: (params?: { limit?: number; offset?: number; minSavings?: number; minSavingsPercent?: number; minConfidence?: number; category?: string; matcher_mode?: 'standard' | 'ultra-strict' }) => 
     api.get('/price-comparisons-v2/detailed-comparisons', { params }),
   getCategoriesWithSavings: () => 
     api.get('/price-comparisons-v2/categories-with-savings'),

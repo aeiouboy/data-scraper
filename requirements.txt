@@ -16,6 +16,12 @@ httpx==0.26.0
 beautifulsoup4==4.12.3
 lxml==5.1.0
 firecrawl-py>=0.0.14
+# Native scraping dependencies
+aiohttp==3.9.3
+aiofiles==23.2.1
+fake-useragent==1.4.0
+cchardet==2.1.7
+html5lib==1.1
 
 # API framework
 fastapi==0.109.0

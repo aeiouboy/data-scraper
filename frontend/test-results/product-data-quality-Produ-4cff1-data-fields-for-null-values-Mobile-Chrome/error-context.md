@@ -1,0 +1,332 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - button "open drawer"
+  - text: Products
+- navigation
+- main:
+  - heading "Products" [level=4]
+  - heading "Retailer Selection" [level=6]
+  - checkbox "Multi-Retailer"
+  - text: Multi-Retailer
+  - 'button "View Mode: grid"'
+  - text: 🏠
+  - heading "HomePro" [level=6]
+  - text: Market Leader 2,973 products ฿8798 avg 🔨
+  - heading "Thai Watsadu" [level=6]
+  - text: Construction Specialist 206 products ฿8614 avg 🏡
+  - heading "Global House" [level=6]
+  - text: Premium Home & Living 0 products ฿0 avg 🛠️
+  - heading "DoHome" [level=6]
+  - text: Value Hardware Store 0 products ฿0 avg 🏺
+  - heading "Boonthavorn" [level=6]
+  - text: Ceramic & Sanitary Specialist 0 products ฿0 avg 🏗️
+  - heading "MegaHome" [level=6]
+  - text: Building Materials Specialist 0 products ฿0 avg Search products
+  - textbox "Search products"
+  - button "Search"
+  - button "Filters"
+  - button "Reset"
+  - button "Export" [disabled]
+  - grid:
+    - rowgroup:
+      - row "SKU Product Name Brand Category Original Price Sale Price Discount Status Actions":
+        - columnheader "SKU":
+          - text: SKU
+          - button "Sort"
+          - button "Menu"
+        - columnheader "Product Name":
+          - text: Product Name
+          - button "Sort"
+          - button "Menu"
+        - columnheader "Brand":
+          - text: Brand
+          - button "Sort"
+          - button "Menu"
+        - columnheader "Category":
+          - text: Category
+          - button "Sort"
+          - button "Menu"
+        - columnheader "Original Price":
+          - text: Original Price
+          - button "Sort"
+          - button "Menu"
+        - columnheader "Sale Price":
+          - text: Sale Price
+          - button "Sort"
+          - button "Menu"
+        - columnheader "Discount":
+          - text: Discount
+          - button "Sort"
+          - button "Menu"
+        - columnheader "Status":
+          - text: Status
+          - button "Sort"
+          - button "Menu"
+        - columnheader "Actions":
+          - text: Actions
+          - button "Sort"
+          - button "Menu"
+    - rowgroup:
+      - row "HP-0C668A8B ⚠️ Product Name Not Available No Brand - - N/A Check Store View":
+        - cell "HP-0C668A8B ⚠️":
+          - paragraph: HP-0C668A8B
+          - text: ⚠️
+        - cell "Product Name Not Available":
+          - paragraph: Product Name Not Available
+        - cell "No Brand":
+          - paragraph: No Brand
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Check Store"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1243357
+      - row "888134800449 ⚠️ Hofcare หน้ากากอนามัย 3 ชั้น สีขาว บรรจุ 50 ชิ้น hofcare - - N/A Check Store View":
+        - cell "888134800449 ⚠️":
+          - paragraph: "888134800449"
+          - text: ⚠️
+        - cell "Hofcare หน้ากากอนามัย 3 ชั้น สีขาว บรรจุ 50 ชิ้น":
+          - paragraph: Hofcare หน้ากากอนามัย 3 ชั้น สีขาว บรรจุ 50 ชิ้น
+        - cell "hofcare":
+          - paragraph: hofcare
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Check Store"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/888134800449
+      - row "1204072 ⚠️ HomePro | No.1 Home Improvement Center in Thailand No Brand - - N/A Check Store View":
+        - cell "1204072 ⚠️":
+          - paragraph: "1204072"
+          - text: ⚠️
+        - cell "HomePro | No.1 Home Improvement Center in Thailand":
+          - paragraph: HomePro | No.1 Home Improvement Center in Thailand
+        - cell "No Brand":
+          - paragraph: No Brand
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Check Store"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1204072
+      - row "1288319 ⚠️ POWER BOX ECOFLOW DELTA 3 PLUS 1800 วัตต์ สีดำ ECOFLOW - - N/A Check Store View":
+        - cell "1288319 ⚠️":
+          - paragraph: "1288319"
+          - text: ⚠️
+        - cell "POWER BOX ECOFLOW DELTA 3 PLUS 1800 วัตต์ สีดำ":
+          - paragraph: POWER BOX ECOFLOW DELTA 3 PLUS 1800 วัตต์ สีดำ
+        - cell "ECOFLOW":
+          - paragraph: ECOFLOW
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Check Store"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1288319
+      - row "1270909 ⚠️ POWER BOX ECOFLOW DELTA PRO 3600 วัตต์ สีดำ ECOFLOW - - N/A Check Store View":
+        - cell "1270909 ⚠️":
+          - paragraph: "1270909"
+          - text: ⚠️
+        - cell "POWER BOX ECOFLOW DELTA PRO 3600 วัตต์ สีดำ":
+          - paragraph: POWER BOX ECOFLOW DELTA PRO 3600 วัตต์ สีดำ
+        - cell "ECOFLOW":
+          - paragraph: ECOFLOW
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Check Store"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1270909
+      - row "1256491 POWER BOX ECOFLOW RIVER 2 300 วัตต์ สีดำ ECOFLOW เครื่องใช้ไฟฟ้า ฿16690.00 ฿7190.00 57% Save ฿9500.00 Available View":
+        - cell "1256491":
+          - paragraph: "1256491"
+        - cell "POWER BOX ECOFLOW RIVER 2 300 วัตต์ สีดำ":
+          - paragraph: POWER BOX ECOFLOW RIVER 2 300 วัตต์ สีดำ
+        - cell "ECOFLOW":
+          - paragraph: ECOFLOW
+        - cell "เครื่องใช้ไฟฟ้า":
+          - paragraph: เครื่องใช้ไฟฟ้า
+        - cell "฿16690.00":
+          - paragraph: ฿16690.00
+        - cell "฿7190.00":
+          - paragraph: ฿7190.00
+        - cell "57% Save ฿9500.00"
+        - cell "Available"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1256491
+      - row "1277432 ⚠️ POWER LIFT RECLINER FURDINI DIEGO สีเทาเข้ม FURDINI - - N/A Available View":
+        - cell "1277432 ⚠️":
+          - paragraph: "1277432"
+          - text: ⚠️
+        - cell "POWER LIFT RECLINER FURDINI DIEGO สีเทาเข้ม":
+          - paragraph: POWER LIFT RECLINER FURDINI DIEGO สีเทาเข้ม
+        - cell "FURDINI":
+          - paragraph: FURDINI
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Available"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1277432
+      - row "7004061 PROMO CODE ล้างแอร์4ทิศทางหรือฝังฝ้า HOMEPRO เครื่องใช้ไฟฟ้า ฿91950.00 ฿1300.00 99% Save ฿90650.00 Available View":
+        - cell "7004061":
+          - paragraph: "7004061"
+        - cell "PROMO CODE ล้างแอร์4ทิศทางหรือฝังฝ้า":
+          - paragraph: PROMO CODE ล้างแอร์4ทิศทางหรือฝังฝ้า
+        - cell "HOMEPRO":
+          - paragraph: HOMEPRO
+        - cell "เครื่องใช้ไฟฟ้า":
+          - paragraph: เครื่องใช้ไฟฟ้า
+        - cell "฿91950.00":
+          - paragraph: ฿91950.00
+        - cell "฿1300.00":
+          - paragraph: ฿1300.00
+        - cell "99% Save ฿90650.00"
+        - cell "Available"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/7004061
+      - row "7004010 PROMO CODE ล้างแอร์ติดผนัง HOMEPRO เครื่องใช้ไฟฟ้า ฿21000.00 ฿650.00 97% Save ฿20350.00 Available View":
+        - cell "7004010":
+          - paragraph: "7004010"
+        - cell "PROMO CODE ล้างแอร์ติดผนัง":
+          - paragraph: PROMO CODE ล้างแอร์ติดผนัง
+        - cell "HOMEPRO":
+          - paragraph: HOMEPRO
+        - cell "เครื่องใช้ไฟฟ้า":
+          - paragraph: เครื่องใช้ไฟฟ้า
+        - cell "฿21000.00":
+          - paragraph: ฿21000.00
+        - cell "฿650.00":
+          - paragraph: ฿650.00
+        - cell "97% Save ฿20350.00"
+        - cell "Available"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/7004010
+      - row "1289837 ⚠️ RECLINER FURDINI LUNO สีเทา FURDINI - - N/A Available View":
+        - cell "1289837 ⚠️":
+          - paragraph: "1289837"
+          - text: ⚠️
+        - cell "RECLINER FURDINI LUNO สีเทา":
+          - paragraph: RECLINER FURDINI LUNO สีเทา
+        - cell "FURDINI":
+          - paragraph: FURDINI
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Available"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1289837
+      - row "1247668 ⚠️ RECLINER FURDINI MUZAN สีมอคค่า FURDINI - - N/A Available View":
+        - cell "1247668 ⚠️":
+          - paragraph: "1247668"
+          - text: ⚠️
+        - cell "RECLINER FURDINI MUZAN สีมอคค่า":
+          - paragraph: RECLINER FURDINI MUZAN สีมอคค่า
+        - cell "FURDINI":
+          - paragraph: FURDINI
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Available"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1247668
+      - row "1274685 ⚠️ กรงแมวมีล้อ PETUS 76X53X137 ซม. สีขาว PETUS - - N/A Check Store View":
+        - cell "1274685 ⚠️":
+          - paragraph: "1274685"
+          - text: ⚠️
+        - cell "กรงแมวมีล้อ PETUS 76X53X137 ซม. สีขาว":
+          - paragraph: กรงแมวมีล้อ PETUS 76X53X137 ซม. สีขาว
+        - cell "PETUS":
+          - paragraph: PETUS
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Check Store"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1274685
+      - row "1274703 ⚠️ กรงแมวมีล้อ PETUS 76X53X137 ซม. สีดำ PETUS - - N/A Check Store View":
+        - cell "1274703 ⚠️":
+          - paragraph: "1274703"
+          - text: ⚠️
+        - cell "กรงแมวมีล้อ PETUS 76X53X137 ซม. สีดำ":
+          - paragraph: กรงแมวมีล้อ PETUS 76X53X137 ซม. สีดำ
+        - cell "PETUS":
+          - paragraph: PETUS
+        - cell "-":
+          - paragraph: "-"
+        - cell "-":
+          - paragraph: "-"
+        - cell "N/A":
+          - paragraph: N/A
+        - cell
+        - cell "Check Store"
+        - cell "View":
+          - button
+          - link "View":
+            - /url: https://www.homepro.co.th/p/1274703
+    - paragraph: 1–20 of 2973
+    - button "Go to previous page" [disabled]
+    - button "Go to next page"
+```

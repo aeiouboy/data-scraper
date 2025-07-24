@@ -25,6 +25,7 @@ A comprehensive web scraping and price comparison system for Thai home improveme
 - [Usage](#usage)
 - [API Documentation](#api-documentation)
 - [Development](#development)
+- [Project Organization](#project-organization)
 - [Testing](#testing)
 - [Deployment](#deployment)
 - [Contributing](#contributing)
@@ -43,6 +44,49 @@ A comprehensive web scraping and price comparison system for Thai home improveme
                         │  Firecrawl API  │
                         │  (Scraping)     │
                         └─────────────────┘
+```
+
+## 📂 Project Organization
+
+This project follows a professional enterprise-grade organization structure:
+
+```
+ris-data-scrap/
+├── src/                     # Application source code
+│   ├── api/                 # FastAPI application & routers
+│   ├── core/                # Core business logic
+│   ├── models/              # Data models
+│   ├── scrapers/            # Web scraping engines
+│   ├── services/            # Business services
+│   └── utils/               # Utility functions
+├── data/                    # Data lifecycle management
+│   ├── active/              # Current operational data
+│   │   ├── analysis/        # Data quality & performance analysis
+│   │   ├── scraping/        # Scraping results & validation
+│   │   └── testing/         # Test data & results
+│   ├── archive/             # Historical data & backups
+│   └── config/              # Data management configurations
+├── docs/                    # Comprehensive documentation
+│   ├── api/                 # API documentation & guides
+│   ├── architecture/        # System architecture docs
+│   ├── development/         # Developer guides
+│   ├── features/            # Feature specifications
+│   └── project_management/  # Project management docs
+├── scripts/                 # Automation & utility scripts
+│   ├── scraping/            # Data collection scripts
+│   ├── monitoring/          # System monitoring scripts
+│   └── utilities/           # Maintenance scripts
+├── tools/                   # Development & operations tools
+│   ├── data_quality/        # Data validation tools
+│   ├── fixes/               # Issue resolution tools
+│   └── validation/          # Quality assurance tools
+├── tests/                   # Comprehensive test suite
+│   ├── unit/                # Unit tests
+│   ├── integration/         # Integration tests
+│   └── e2e/                 # End-to-end tests
+└── frontend/                # React application
+    ├── src/                 # Frontend source code
+    └── tests/               # Frontend tests
 ```
 
 ## 🚀 Quick Start
@@ -87,7 +131,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Set up database
-python scripts/setup/create_schema.py
+python scripts/database/create_schema.py
 ```
 
 ### Frontend Setup

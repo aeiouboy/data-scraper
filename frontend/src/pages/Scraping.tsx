@@ -21,6 +21,7 @@ import {
   LinearProgress,
   Grid,
   Container,
+  Alert,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import {
@@ -31,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import { scrapingApi } from '../services/api';
 import ScrapingWizard from '../components/scraping/ScrapingWizard';
+import { detectRetailerFromUrl } from '../utils/retailerDetection';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -212,10 +214,13 @@ export default function Scraping() {
               size="small" 
               onClick={() => {
                 // Create a new job with the same parameters
+                // Detect retailer from URL if not already set
+                const retailer_code = params.row.retailer_code || detectRetailerFromUrl(params.row.target_url);
+                
                 const retryData = {
                   job_type: params.row.job_type,
                   target_url: params.row.target_url,
-                  retailer_code: params.row.retailer_code || 'TWD',
+                  retailer_code: retailer_code,
                   max_pages: params.row.max_pages || 5,
                   urls: params.row.urls || []
                 };
@@ -233,9 +238,14 @@ export default function Scraping() {
   ];
 
   const handleCreateJob = () => {
+    // Detect retailer from URL
+    const url = newJobForm.target_url || (newJobForm.urls && newJobForm.urls[0]);
+    const retailer_code = detectRetailerFromUrl(url);
+    
     const jobData = {
       ...newJobForm,
       urls: newJobForm.job_type === 'product' ? newJobForm.urls : undefined,
+      retailer_code: retailer_code,
     };
     createJobMutation.mutate(jobData);
   };
@@ -316,6 +326,7 @@ export default function Scraping() {
           <Tab label="All Jobs" />
           <Tab label="Running" />
           <Tab label="Completed" />
+          <Tab label="🎯 Complete Catalog" />
         </Tabs>
 
         <TabPanel value={tabValue} index={0}>
@@ -364,6 +375,44 @@ export default function Scraping() {
             autoHeight
             disableRowSelectionOnClick
           />
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={3}>
+          <Box sx={{ p: 3 }}>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>🎯 Complete Catalog Scraping</Typography>
+              <Typography variant="body2">
+                To scrape ALL available SKUs from any retailer, use the <strong>"Start Scraping"</strong> button above 
+                and configure these settings:
+              </Typography>
+              <Box sx={{ mt: 2 }}>
+                <Chip label="1. Select your retailer (HP, TWD, etc.)" size="small" sx={{ mr: 1, mb: 1 }} />
+                <Chip label="2. Choose ALL categories" size="small" sx={{ mr: 1, mb: 1 }} />
+                <Chip label="3. Set max_pages to 999 (unlimited)" size="small" sx={{ mr: 1, mb: 1 }} />
+                <Chip label="4. Launch campaign" size="small" sx={{ mr: 1, mb: 1 }} />
+              </Box>
+            </Alert>
+            
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<RocketLaunchIcon />}
+              onClick={() => setOpenWizard(true)}
+              sx={{
+                background: 'linear-gradient(45deg, #FF6B35 30%, #F7931E 90%)',
+                boxShadow: '0 3px 10px 2px rgba(255, 107, 53, .3)',
+                minWidth: 250,
+                height: 60,
+                fontSize: '1.1rem',
+              }}
+            >
+              🚀 Open Complete Catalog Wizard
+            </Button>
+            
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              Use the existing wizard above for proper retailer selection and configuration
+            </Typography>
+          </Box>
         </TabPanel>
       </Paper>
 

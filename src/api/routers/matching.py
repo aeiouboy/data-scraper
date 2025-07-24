@@ -10,7 +10,8 @@ import hashlib
 
 from src.services.product_matcher import ProductMatcher, ProductMatchAnalyzer
 from src.services.supabase_service import SupabaseService
-from src.utils.text_normalizer import TextNormalizer, ProductMatcher as TextMatcher
+from src.utils.text_normalizer import TextNormalizer
+from src.utils.product_matcher_improved import ImprovedProductMatcher
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["matching"])
@@ -40,15 +41,43 @@ async def test_product_match(
     """
     try:
         # Initialize matcher
-        text_matcher = TextMatcher()
+        improved_matcher = ImprovedProductMatcher()
+        
+        # Prepare product data for improved matcher
+        product1_data = {
+            'name': match_request.product1_name,
+            'brand': match_request.brand1,
+            'sku': '',  # Extract from name if available
+            'specs': {},
+            'category': 'default'
+        }
+        
+        product2_data = {
+            'name': match_request.product2_name,
+            'brand': match_request.brand2,
+            'sku': '',  # Extract from name if available
+            'specs': {},
+            'category': 'default'
+        }
         
         # Perform matching
-        match_result = text_matcher.match_products(
-            match_request.product1_name,
-            match_request.product2_name,
-            match_request.brand1,
-            match_request.brand2
+        match_result_obj = improved_matcher.match_products(
+            product1_data,
+            product2_data,
+            'default'
         )
+        
+        # Convert to expected format
+        match_result = {
+            'overall_confidence': match_result_obj.confidence,
+            'name_similarity': match_result_obj.details.get('name_score', 0),
+            'sku_match': match_result_obj.details.get('sku_score', 0) > 0.8,
+            'brand_match': match_result_obj.details.get('brand_score', 0),
+            'spec_match': match_result_obj.details.get('spec_score', 0),
+            'details': match_result_obj.details,
+            'warnings': match_result_obj.warnings,
+            'rejection_reasons': match_result_obj.rejection_reasons
+        }
         
         # Add normalized text for debugging
         normalizer = TextNormalizer()
@@ -143,6 +172,16 @@ async def get_match_suggestions(
     Returns potential matches with confidence scores
     """
     try:
+        # Validate UUID format
+        import uuid
+        try:
+            uuid.UUID(product_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid product ID format: '{product_id}'. Expected UUID format."
+            )
+            
         supabase: SupabaseService = request.app.state.supabase
         
         # Get the product
@@ -155,7 +194,7 @@ async def get_match_suggestions(
         
         # Initialize matcher
         matcher = ProductMatcher()
-        text_matcher = TextMatcher()
+        improved_matcher = ImprovedProductMatcher()
         
         # Get potential matches from other retailers
         query = supabase.client.table('products').select('*')
@@ -172,12 +211,37 @@ async def get_match_suggestions(
         # Score each candidate
         suggestions = []
         for candidate in candidates:
-            match_result = text_matcher.match_products(
-                product['name'],
-                candidate['name'],
-                product.get('brand'),
-                candidate.get('brand')
+            # Prepare product data for improved matcher
+            product_data = {
+                'name': product['name'],
+                'brand': product.get('brand', ''),
+                'sku': product.get('sku', ''),
+                'specs': product.get('specifications', {}),
+                'category': product.get('unified_category', 'default')
+            }
+            
+            candidate_data = {
+                'name': candidate['name'],
+                'brand': candidate.get('brand', ''),
+                'sku': candidate.get('sku', ''),
+                'specs': candidate.get('specifications', {}),
+                'category': candidate.get('unified_category', 'default')
+            }
+            
+            match_result_obj = improved_matcher.match_products(
+                product_data,
+                candidate_data,
+                product.get('unified_category', 'default')
             )
+            
+            # Convert to expected format
+            match_result = {
+                'overall_confidence': match_result_obj.confidence,
+                'name_similarity': match_result_obj.details.get('name_score', 0),
+                'sku_match': match_result_obj.details.get('sku_score', 0) > 0.8,
+                'brand_match': match_result_obj.details.get('brand_score', 0),
+                'spec_match': match_result_obj.details.get('spec_score', 0)
+            }
             
             if match_result['overall_confidence'] >= min_confidence:
                 suggestions.append({

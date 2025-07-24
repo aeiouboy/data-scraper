@@ -1,3 +1,1 @@
-"""
-End-to-end tests package
-"""
+"""End-to-end tests for complete workflows."""

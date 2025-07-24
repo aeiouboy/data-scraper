@@ -15,6 +15,12 @@ class RetailerType(Enum):
     MEGAHOME = "megahome"
 
 
+class ScrapingMethod(Enum):
+    NATIVE = "native"
+    FIRECRAWL = "firecrawl"
+    HYBRID = "hybrid"
+
+
 @dataclass
 class RetailerConfig:
     """Configuration for each retailer"""
@@ -34,11 +40,24 @@ class RetailerConfig:
     rate_limit_delay: float = 1.0
     max_concurrent: int = 5
     retry_attempts: int = 3
+    timeout: int = 30
+    
+    # Native Scraping Method Configuration
+    scraping_method: ScrapingMethod = ScrapingMethod.HYBRID
+    primary_strategy: str = "native"
+    fallback_strategy: str = "firecrawl"
+    success_rate_threshold: float = 0.8
+    response_time_threshold: float = 10.0
+    fallback_after_failures: int = 3
+    min_data_quality_score: float = 0.7
     
     # Data Extraction Patterns
     category_mapping: Dict[str, str] = field(default_factory=dict)
     url_patterns: Dict[str, str] = field(default_factory=dict)
-    selectors: Dict[str, str] = field(default_factory=dict)
+    selectors: Dict[str, List[str]] = field(default_factory=dict)
+    
+    # Search Configuration
+    search_patterns: Dict[str, str] = field(default_factory=dict)
     
     # Market Info
     market_position: str = ""
@@ -118,9 +137,18 @@ RETAILER_CONFIGS = {
             "https://www.homepro.co.th/c/TVA",  # TVA - TV/Audio
             "https://www.homepro.co.th/c/WAL",  # WAL - Wall
         ],
+        product_url_patterns=['/p/', '/product/', '/products/'],
         estimated_products=68500,
         rate_limit_delay=1.0,
         max_concurrent=5,
+        timeout=30,
+        scraping_method=ScrapingMethod.HYBRID,
+        primary_strategy="native",
+        fallback_strategy="firecrawl",
+        success_rate_threshold=0.8,
+        response_time_threshold=8.0,
+        fallback_after_failures=3,
+        min_data_quality_score=0.7,
         category_mapping={
             'APP': 'เครื่องใช้ไฟฟ้า',
             'ATM': 'ยานยนต์',
@@ -164,6 +192,11 @@ RETAILER_CONFIGS = {
             'TOO': 'เครื่องมือ',
             'TVA': 'ทีวีและเครื่องเสียง',
             'WAL': 'ผนัง',
+        },
+        search_patterns={
+            'url_pattern': '/search?q={query}',
+            'query_parameter': 'q',
+            'results_per_page': 20
         },
         market_position="Market Leader",
         focus_categories=["Appliances", "Furniture", "Construction"],

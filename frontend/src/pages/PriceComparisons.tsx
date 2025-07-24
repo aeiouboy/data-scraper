@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box,
@@ -20,20 +20,13 @@ import {
   Skeleton,
   Fade,
   Zoom,
-  ToggleButton,
-  ToggleButtonGroup,
-  Container,
 } from '@mui/material';
 import {
   TrendingDown as SavingsIcon,
   Store as StoreIcon,
   CompareArrows as CompareIcon,
   LocalOffer as OfferIcon,
-  Refresh as RefreshIcon,
   FilterList as FilterIcon,
-  ViewModule as GridViewIcon,
-  ViewList as ListViewIcon,
-  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { priceComparisonApi } from '../services/api';
@@ -71,46 +64,85 @@ interface RetailerCompetitiveness {
 }
 
 export default function PriceComparisons() {
-  const { selectedRetailers, multiRetailerMode } = useRetailer();
+  const { selectedRetailers } = useRetailer();
   const [categoryFilter, setCategoryFilter] = useState('');
   const [minSavings, setMinSavings] = useState(100);
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'analytics'>('grid');
+  const [viewMode] = useState<'grid' | 'list' | 'analytics'>('grid');
   const [currentPage, setCurrentPage] = useState(0);
   const [minSavingsInput, setMinSavingsInput] = useState(100);
+  const [showFilters, setShowFilters] = useState(false);
+  const [matcherMode] = useState<'standard' | 'ultra-strict'>('standard');
   const itemsPerPage = 12;
   
-  // Debounced update for minSavings
+  // Debounced update for minSavings with pagination reset
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setMinSavings(minSavingsInput);
-      setCurrentPage(0);
+      setCurrentPage(0); // Reset to first page when filter changes
     }, 500);
     
     return () => clearTimeout(timer);
   }, [minSavingsInput]);
 
-  // Fetch detailed price comparisons (new V2 API)
-  const { data: detailedData, isLoading: loadingDetailed, refetch: refetchDetailed } = useQuery({
-    queryKey: ['price-comparisons-v2', 'detailed', minSavings, categoryFilter, currentPage],
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setCurrentPage(0);
+  }, [categoryFilter, matcherMode, viewMode]);
+
+  // Fetch detailed price comparisons with proper pagination
+  const { data: detailedData, isLoading: loadingDetailed, refetch: refetchDetailed, error: detailedError } = useQuery({
+    queryKey: ['price-comparisons-optimized', minSavings, categoryFilter, currentPage, matcherMode, viewMode],
     queryFn: async () => {
       try {
-        const response = await priceComparisonApi.getDetailedComparisons({
-          limit: viewMode === 'grid' ? itemsPerPage : 50,
-          offset: viewMode === 'grid' ? currentPage * itemsPerPage : 0,
+        const limit = viewMode === 'grid' ? itemsPerPage : 50;
+        const offset = currentPage * limit;
+        
+        console.log(`Fetching page ${currentPage + 1} with limit=${limit}, offset=${offset}`);
+        
+        const response = await priceComparisonApi.getDetailedComparisonsOptimized({
+          limit,
+          offset,
           minSavings: minSavings,
           category: categoryFilter || undefined,
         });
+        
+        if (!response.data) {
+          throw new Error('No data received from API');
+        }
+        
+        console.log(`Received ${response.data.comparisons?.length || 0} items, total: ${response.data.total}`);
         return response.data;
       } catch (error) {
         console.error('Error fetching detailed comparisons:', error);
-        return { comparisons: [], total: 0 };
+        throw error; // Re-throw to let React Query handle the error
       }
     },
-    enabled: multiRetailerMode && selectedRetailers.length > 1,
-    staleTime: 60000, // Cache for 1 minute
+    enabled: true, // Always enabled to show price comparisons
+    staleTime: 30000, // Cache for 30 seconds (shorter for better pagination UX)
     cacheTime: 300000, // Keep in cache for 5 minutes
     keepPreviousData: true, // Keep previous data while fetching new page
+    retry: 2, // Retry failed requests
   });
+
+  // Keyboard navigation for pagination
+  React.useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.target !== document.body) return; // Only work when not in input fields
+      
+      const totalPages = Math.ceil((detailedData?.total || 0) / itemsPerPage);
+      
+      if (event.key === 'ArrowLeft' && currentPage > 0) {
+        event.preventDefault();
+        setCurrentPage(currentPage - 1);
+      } else if (event.key === 'ArrowRight' && currentPage < totalPages - 1) {
+        event.preventDefault();
+        setCurrentPage(currentPage + 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentPage, detailedData?.total, itemsPerPage]);
 
   // Fetch top savings opportunities (legacy API for table view)
   const { data: savingsData, isLoading: loadingSavings, refetch: refetchSavings } = useQuery({
@@ -124,10 +156,10 @@ export default function PriceComparisons() {
         return [];
       }
     },
-    enabled: multiRetailerMode && selectedRetailers.length > 1 && viewMode === 'list',
+    enabled: viewMode === 'list',
   });
 
-  // Fetch retailer competitiveness
+  // Fetch retailer competitiveness (only when analytics view is active)
   const { data: competitivenessData, isLoading: loadingCompetitiveness } = useQuery({
     queryKey: ['price-comparisons', 'competitiveness'],
     queryFn: async () => {
@@ -139,19 +171,10 @@ export default function PriceComparisons() {
         return {};
       }
     },
-    enabled: multiRetailerMode && selectedRetailers.length > 1,
+    enabled: viewMode === 'analytics',
+    staleTime: 300000, // Cache for 5 minutes
   });
 
-  // Refresh all matches
-  const handleRefreshMatches = async () => {
-    try {
-      await priceComparisonApi.refreshMatches();
-      refetchDetailed();
-      refetchSavings();
-    } catch (error) {
-      console.error('Failed to refresh matches:', error);
-    }
-  };
 
   // Filter savings data for table view
   const filteredSavings = savingsData?.filter((item: SavingsOpportunity) => {
@@ -163,17 +186,37 @@ export default function PriceComparisons() {
   // Get comparisons from detailed data with memoization
   const comparisons = useMemo(() => detailedData?.comparisons || [], [detailedData]);
   
-  // Calculate summary statistics with memoization
-  const { totalSavings, avgVariance } = useMemo(() => {
-    const total = comparisons.reduce((sum: number, item: any) => 
-      sum + (item.priceAnalysis?.savingsAmount || 0), 0
-    );
-    const avg = comparisons.length > 0 
-      ? comparisons.reduce((sum: number, item: any) => 
-          sum + (item.priceAnalysis?.savingsPercentage || 0), 0) / comparisons.length 
-      : 0;
-    return { totalSavings: total, avgVariance: avg };
-  }, [comparisons]);
+  // Fetch quick stats from API
+  const { data: quickStats } = useQuery({
+    queryKey: ['price-comparisons-quick-stats', categoryFilter],
+    queryFn: async () => {
+      try {
+        const response = await priceComparisonApi.getQuickStats(categoryFilter || undefined);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching quick stats:', error);
+        return {
+          totalSavingsAvailable: 0,
+          productsWithSavings: 0,
+          avgPriceVariance: 0,
+          lastUpdated: new Date().toISOString()
+        };
+      }
+    },
+    enabled: true, // Always enabled to show price comparisons
+    staleTime: 60000, // Cache for 1 minute
+  });
+
+  // Extract values with fallback calculations
+  const totalSavings = quickStats?.totalSavingsAvailable || 
+    comparisons.reduce((sum: number, item: any) => sum + (item.priceAnalysis?.savingsAmount || 0), 0);
+  const avgVariance = quickStats?.avgPriceVariance || 
+    (comparisons.length > 0 
+      ? comparisons.reduce((sum: number, item: any) => sum + (item.priceAnalysis?.savingsPercentage || 0), 0) / comparisons.length 
+      : 0);
+  const productsWithSavings = quickStats?.productsWithSavings || comparisons.length;
+  
+  // Calculate TWD Market Leadership (percentage of products where TWD has best price)
 
   const savingsColumns: GridColDef[] = [
     {
@@ -219,6 +262,7 @@ export default function PriceComparisons() {
         <Chip
           label={params.value}
           size="small"
+          data-testid="retailer-chip"
           sx={{
             bgcolor: `${retailerColors[params.value] || '#666'}15`,
             color: retailerColors[params.value] || '#666',
@@ -245,74 +289,42 @@ export default function PriceComparisons() {
     },
   ];
 
-  // Single retailer mode message
-  if (!multiRetailerMode || selectedRetailers.length < 2) {
-    return (
-      <Box>
-        <Typography variant="h4" gutterBottom>
-          Price Comparisons
-        </Typography>
-        
-        <RetailerSelector variant="full" showStats={true} showMultiMode={true} />
-
-        <Alert severity="info" sx={{ mt: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            Enable Multi-Retailer Mode
-          </Typography>
-          <Typography>
-            Price comparisons require data from multiple retailers. Please enable Multi-Retailer mode 
-            above and select at least 2 retailers to view cross-retailer price analysis and savings opportunities.
-          </Typography>
-        </Alert>
-      </Box>
-    );
-  }
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">
-          Price Comparisons
-        </Typography>
-        
-        <Stack direction="row" spacing={2}>
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={(e, newMode) => newMode && setViewMode(newMode)}
-            size="small"
-          >
-            <ToggleButton value="grid">
-              <GridViewIcon sx={{ mr: 1 }} />
-              Cards
-            </ToggleButton>
-            <ToggleButton value="list">
-              <ListViewIcon sx={{ mr: 1 }} />
-              Table
-            </ToggleButton>
-            <ToggleButton value="analytics">
-              <AnalyticsIcon sx={{ mr: 1 }} />
-              Analytics
-            </ToggleButton>
-          </ToggleButtonGroup>
-          
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={handleRefreshMatches}
-            disabled={loadingSavings}
-          >
-            Refresh
-          </Button>
-        </Stack>
-      </Stack>
+      <Typography variant="h4" sx={{
+        background: 'linear-gradient(45deg, #FF6B35 30%, #F7931E 90%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        flexShrink: 0,
+        mb: 2
+      }}>
+        💰 Smart Price Comparisons
+      </Typography>
+      
+      <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px'}}>
+        <div style={{padding: '8px', background: 'blue', color: 'white'}}>TEST 1</div>
+        <div style={{padding: '8px', background: 'green', color: 'white'}}>TEST 2</div>
+        <div style={{padding: '8px', background: 'red', color: 'white'}}>TEST 3</div>
+      </div>
 
       <RetailerSelector variant="full" showStats={true} showMultiMode={true} />
+
+      {/* Ultra-Strict Mode Indicator */}
+      {matcherMode === 'ultra-strict' && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="body2">
+            🎯 <strong>Ultra-Strict Mode Active:</strong> Maximum accuracy matching with strict model validation. 
+            False positives are eliminated but fewer matches may be found.
+          </Typography>
+        </Alert>
+      )}
 
       {/* Summary Cards */}
       <Grid container spacing={3} mb={3}>
         <Grid item xs={12} md={3}>
-          <Card>
+          <Card data-testid="stats-card">
             <CardContent>
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar sx={{ bgcolor: 'success.main' }}>
@@ -332,7 +344,7 @@ export default function PriceComparisons() {
         </Grid>
 
         <Grid item xs={12} md={3}>
-          <Card>
+          <Card data-testid="stats-card">
             <CardContent>
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -340,7 +352,7 @@ export default function PriceComparisons() {
                 </Avatar>
                 <Box>
                   <Typography variant="h6">
-                    {comparisons.length.toLocaleString()}
+                    {productsWithSavings.toLocaleString()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Products with Savings
@@ -352,7 +364,7 @@ export default function PriceComparisons() {
         </Grid>
 
         <Grid item xs={12} md={3}>
-          <Card>
+          <Card data-testid="stats-card">
             <CardContent>
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar sx={{ bgcolor: 'warning.main' }}>
@@ -372,7 +384,7 @@ export default function PriceComparisons() {
         </Grid>
 
         <Grid item xs={12} md={3}>
-          <Card>
+          <Card data-testid="stats-card">
             <CardContent>
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar sx={{ bgcolor: 'info.main' }}>
@@ -392,38 +404,52 @@ export default function PriceComparisons() {
         </Grid>
       </Grid>
 
+      {/* Filter Toggle */}
+      <Box sx={{ mb: 2 }}>
+        <Button
+          variant="outlined"
+          startIcon={<FilterIcon />}
+          onClick={() => setShowFilters(!showFilters)}
+          size="small"
+        >
+          Show Filters
+        </Button>
+      </Box>
+
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <FilterIcon color="action" />
-          <TextField
-            label="Minimum Savings (฿)"
-            type="number"
-            value={minSavingsInput}
-            onChange={(e) => setMinSavingsInput(Number(e.target.value))}
-            size="small"
-            sx={{ width: 200 }}
-          />
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={categoryFilter}
-              onChange={(e) => {
-                setCategoryFilter(e.target.value);
-                setCurrentPage(0);
-              }}
-              label="Category"
-            >
-              <MenuItem value="">All Categories</MenuItem>
-              {Array.from(new Set(savingsData?.map((item: SavingsOpportunity) => item.category) || [])).map((category) => (
-                <MenuItem key={String(category)} value={String(category)}>
-                  {String(category)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      </Paper>
+      {showFilters && (
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <FilterIcon color="action" />
+            <TextField
+              label="Minimum Savings (฿)"
+              type="number"
+              value={minSavingsInput}
+              onChange={(e) => setMinSavingsInput(Number(e.target.value))}
+              size="small"
+              sx={{ width: 200 }}
+            />
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={categoryFilter}
+                onChange={(e) => {
+                  setCategoryFilter(e.target.value);
+                  setCurrentPage(0);
+                }}
+                label="Category"
+              >
+                <MenuItem value="">All Categories</MenuItem>
+                {Array.from(new Set(savingsData?.map((item: SavingsOpportunity) => item.category) || [])).map((category) => (
+                  <MenuItem key={String(category)} value={String(category)}>
+                    {String(category)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </Paper>
+      )}
 
       {/* View Mode Content */}
       {viewMode === 'analytics' ? (
@@ -469,6 +495,7 @@ export default function PriceComparisons() {
                         savingsAmount={comparison.priceAnalysis?.savingsAmount || 0}
                         savingsPercentage={comparison.priceAnalysis?.savingsPercentage || 0}
                         matchConfidence={comparison.matchConfidence}
+                        matcherMode={matcherMode}
                       />
                     </Box>
                   </Grid>
@@ -476,35 +503,75 @@ export default function PriceComparisons() {
               </Grid>
               
               {(detailedData?.total || 0) > itemsPerPage && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 3 }}>
                   <Button
-                    disabled={currentPage === 0}
+                    variant="outlined"
+                    disabled={currentPage === 0 || loadingDetailed}
                     onClick={() => setCurrentPage(currentPage - 1)}
-                    sx={{ mr: 2 }}
+                    sx={{ mr: 2, minWidth: 100 }}
                   >
                     Previous
                   </Button>
-                  <Typography sx={{ mx: 2, display: 'flex', alignItems: 'center' }}>
-                    Page {currentPage + 1} of {Math.ceil((detailedData?.total || 0) / itemsPerPage)}
-                  </Typography>
+                  <Box sx={{ 
+                    mx: 2, 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    minWidth: 150,
+                    justifyContent: 'center'
+                  }}>
+                    {loadingDetailed ? (
+                      <Typography variant="body2" color="text.secondary">
+                        Loading...
+                      </Typography>
+                    ) : detailedError ? (
+                      <Typography variant="body2" color="error">
+                        Error loading
+                      </Typography>
+                    ) : (
+                      <Typography>
+                        Page {currentPage + 1} of {Math.ceil((detailedData?.total || 0) / itemsPerPage)}
+                      </Typography>
+                    )}
+                  </Box>
                   <Button
-                    disabled={currentPage >= Math.ceil((detailedData?.total || 0) / itemsPerPage) - 1}
+                    variant="outlined"
+                    disabled={currentPage >= Math.ceil((detailedData?.total || 0) / itemsPerPage) - 1 || loadingDetailed}
                     onClick={() => setCurrentPage(currentPage + 1)}
-                    sx={{ ml: 2 }}
+                    sx={{ ml: 2, minWidth: 100 }}
                   >
                     Next
                   </Button>
                 </Box>
               )}
               
-              {comparisons.length === 0 && (
+              {comparisons.length === 0 && !loadingDetailed && (
                 <Box sx={{ textAlign: 'center', py: 8 }}>
-                  <Typography variant="h6" color="text.secondary">
-                    No price comparisons found
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Try adjusting your filters or refresh the data
-                  </Typography>
+                  {detailedError ? (
+                    <>
+                      <Typography variant="h6" color="error">
+                        Error loading price comparisons
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {(detailedError as any)?.message || 'Please check your connection and try again'}
+                      </Typography>
+                      <Button 
+                        onClick={() => refetchDetailed()} 
+                        variant="outlined" 
+                        sx={{ mt: 2 }}
+                      >
+                        Retry
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Typography variant="h6" color="text.secondary">
+                        No price comparisons found
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Try adjusting your filters or refresh the data
+                      </Typography>
+                    </>
+                  )}
                 </Box>
               )}
             </Box>

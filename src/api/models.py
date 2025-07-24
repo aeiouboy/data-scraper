@@ -11,6 +11,7 @@ class ProductSearchRequest(BaseModel):
     """Product search request"""
     query: Optional[str] = None
     retailer_code: Optional[str] = None
+    retailer_codes: Optional[List[str]] = None  # For multi-retailer mode
     brands: Optional[List[str]] = None
     categories: Optional[List[str]] = None
     min_price: Optional[float] = None

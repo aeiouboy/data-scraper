@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 import logging
 from supabase import create_client, Client
-from config import get_settings
+from config.app_config import get_settings
 from src.models.product import Product, PriceHistory, ScrapeJob
 
 logger = logging.getLogger(__name__)
@@ -250,7 +250,7 @@ class SupabaseService:
     ) -> Dict[str, Any]:
         """Search products with filters and pagination"""
         try:
-            query_builder = self.client.table('products').select('*', count='exact')
+            query_builder = self.client.table('products').select('*')
             
             # Apply text search
             if query:
@@ -260,7 +260,10 @@ class SupabaseService:
             
             # Apply filters
             if filters:
-                if filters.get('retailer_code'):
+                # Handle multi-retailer mode
+                if filters.get('retailer_codes'):
+                    query_builder = query_builder.in_('retailer_code', filters['retailer_codes'])
+                elif filters.get('retailer_code'):
                     query_builder = query_builder.eq('retailer_code', filters['retailer_code'])
                 
                 if filters.get('brands'):
@@ -281,20 +284,59 @@ class SupabaseService:
                 if filters.get('in_stock'):
                     query_builder = query_builder.eq('availability', 'in_stock')
             
-            # Apply sorting
+            # First, get the total count without pagination
+            count_query = self.client.table('products').select('id', count='exact')
+            
+            # Apply same text search to count query
+            if query:
+                count_query = count_query.or_(
+                    f"name.ilike.%{query}%,description.ilike.%{query}%,sku.ilike.%{query}%"
+                )
+            
+            # Apply same filters to count query
+            if filters:
+                # Handle multi-retailer mode
+                if filters.get('retailer_codes'):
+                    count_query = count_query.in_('retailer_code', filters['retailer_codes'])
+                elif filters.get('retailer_code'):
+                    count_query = count_query.eq('retailer_code', filters['retailer_code'])
+                
+                if filters.get('brands'):
+                    count_query = count_query.in_('brand', filters['brands'])
+                
+                if filters.get('categories'):
+                    count_query = count_query.in_('category', filters['categories'])
+                
+                if filters.get('min_price') is not None:
+                    count_query = count_query.gte('current_price', filters['min_price'])
+                
+                if filters.get('max_price') is not None:
+                    count_query = count_query.lte('current_price', filters['max_price'])
+                
+                if filters.get('on_sale'):
+                    count_query = count_query.gt('discount_percentage', 0)
+                
+                if filters.get('in_stock'):
+                    count_query = count_query.eq('availability', 'in_stock')
+            
+            # Execute count query
+            count_result = count_query.execute()
+            total = count_result.count if count_result.count is not None else 0
+            
+            # Apply sorting to main query
             desc = sort_order == 'desc'
             query_builder = query_builder.order(sort_by, desc=desc)
             
-            # Apply pagination
+            # Apply pagination to main query
             offset = (page - 1) * limit
             query_builder = query_builder.range(offset, offset + limit - 1)
             
-            # Execute query
+            # Execute main query for paginated results
             result = query_builder.execute()
             
             return {
                 'products': result.data,
-                'total': result.count or 0
+                'total': total
             }
             
         except Exception as e:

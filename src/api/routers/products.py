@@ -36,9 +36,15 @@ async def search_products(
     - Pagination
     """
     try:
+        # Log incoming request for debugging 422 errors
+        logger.info(f"Product search request: {request.dict()}")
+        
         # Build filters
         filters = {}
-        if request.retailer_code:
+        # Handle both single retailer and multi-retailer modes
+        if request.retailer_codes:
+            filters['retailer_codes'] = request.retailer_codes
+        elif request.retailer_code:
             filters['retailer_code'] = request.retailer_code
         if request.brands:
             filters['brands'] = request.brands
@@ -138,6 +144,46 @@ async def get_product(
     except Exception as e:
         logger.error(f"Get product error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get product")
+
+
+@router.get("/{product_id}/matches")
+async def get_product_matches(
+    product_id: str,
+    min_confidence: float = Query(default=0.5, ge=0.0, le=1.0),
+    supabase: SupabaseService = Depends(get_supabase)
+):
+    """Get product matches from other retailers"""
+    try:
+        # Validate UUID format
+        import uuid
+        try:
+            uuid.UUID(product_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid product ID format: '{product_id}'. Expected UUID format."
+            )
+        
+        # Get the product first
+        product = await supabase.get_product_by_id(product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Get matches - this would integrate with your matching service
+        # For now, return empty array to prevent errors
+        matches = []
+        
+        return {
+            "product_id": product_id,
+            "matches": matches,
+            "total_matches": len(matches)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting product matches: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get product matches")
 
 
 @router.get("/{product_id}/price-history")

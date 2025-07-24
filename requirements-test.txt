@@ -1,0 +1,42 @@
+# Testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+pytest-timeout>=2.2.0
+pytest-xdist>=3.5.0  # For parallel test execution
+pytest-benchmark>=4.0.0  # For performance tests
+
+# Test utilities
+factory-boy>=3.3.0
+faker>=20.0.0
+freezegun>=1.2.0  # For mocking time
+responses>=0.24.0  # For mocking HTTP requests
+
+# Code quality
+black==23.11.0
+flake8==6.1.0
+isort==5.12.0
+mypy==1.7.1
+pylint==3.0.2
+
+# Security testing
+bandit==1.7.5
+safety==2.3.5
+
+# Coverage
+coverage[toml]==7.3.2
+codecov==2.1.13
+
+# Documentation
+sphinx==7.2.6
+sphinx-rtd-theme==2.0.0
+
+# E2E testing
+selenium==4.15.2
+webdriver-manager==4.0.1
+
+# Performance testing
+locust==2.17.0  # For load testing
+memory-profiler==0.61.0
+psutil==5.9.6

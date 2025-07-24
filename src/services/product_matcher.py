@@ -14,7 +14,9 @@ from decimal import Decimal
 from src.models.product import Product, ProductMatch
 from src.services.supabase_service import SupabaseService as SupabaseClient
 from src.config.retailers import retailer_manager, get_unified_category_mapping
-from src.utils.text_normalizer import TextNormalizer, ProductMatcher as TextProductMatcher
+from src.utils.text_normalizer import TextNormalizer
+from src.utils.product_matcher_improved import ImprovedProductMatcher
+from src.utils.product_matcher_ultra_strict import UltraStrictProductMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,8 @@ class ProductMatcher:
         self.db = SupabaseClient()
         self.unified_categories = get_unified_category_mapping()
         self.text_normalizer = TextNormalizer()
-        self.text_matcher = TextProductMatcher()
+        self.improved_matcher = ImprovedProductMatcher()
+        self.ultra_strict_matcher = UltraStrictProductMatcher()
         
         # Matching thresholds
         self.thresholds = {
@@ -275,25 +278,41 @@ class ProductMatcher:
         
         criteria = MatchCriteria()
         
-        # Use enhanced text matcher for comprehensive matching
-        match_result = self.text_matcher.match_products(
-            product1.name, 
-            product2.name,
-            product1.brand,
-            product2.brand
+        # Prepare product data for improved matcher
+        product1_data = {
+            'name': product1.name,
+            'brand': product1.brand,
+            'sku': product1.sku,
+            'specs': product1.specifications or {},
+            'category': product1.unified_category or product1.category,
+            'price': float(product1.current_price) if product1.current_price else None
+        }
+        
+        product2_data = {
+            'name': product2.name,
+            'brand': product2.brand,
+            'sku': product2.sku,
+            'specs': product2.specifications or {},
+            'category': product2.unified_category or product2.category,
+            'price': float(product2.current_price) if product2.current_price else None
+        }
+        
+        # Use ultra-strict matcher for maximum accuracy (prevents false positives)
+        match_result_improved = self.ultra_strict_matcher.match_products(
+            product1_data,
+            product2_data,
+            product1.unified_category or 'default'
         )
         
-        # Extract matching scores
-        criteria.name_similarity = match_result['name_similarity']
-        criteria.brand_match = match_result['brand_match'] > 0.8
+        # Extract matching scores from improved matcher
+        criteria.name_similarity = match_result_improved.details.get('name_score', 0)
+        criteria.brand_match = match_result_improved.details.get('brand_score', 0) > 0.8
+        criteria.specification_match = match_result_improved.details.get('spec_score', 0)
+        criteria.overall_confidence = match_result_improved.confidence
         
-        # Check SKU match (highest priority)
-        if match_result['sku_match'] == 1.0:
-            criteria.overall_confidence = 0.95
-            criteria.specification_match = 1.0
-        else:
-            # Use enhanced spec matching
-            criteria.specification_match = match_result['spec_match']
+        # Log if match was rejected
+        if match_result_improved.rejection_reasons:
+            logger.info(f"Match rejected: {match_result_improved.rejection_reasons[0]}")
         
         # Category match
         criteria.category_match = (
@@ -308,16 +327,7 @@ class ProductMatcher:
             price_diff = abs(price1 - price2) / max(price1, price2)
             criteria.price_similarity = max(0, 1 - price_diff)
         
-        # Calculate overall confidence if not already set by SKU match
-        if match_result['sku_match'] != 1.0:
-            confidence_score = 0
-            confidence_score += criteria.name_similarity * 0.40  # 40% weight
-            confidence_score += (0.15 if criteria.brand_match else 0)  # 15% weight
-            confidence_score += (0.10 if criteria.category_match else 0)  # 10% weight
-            confidence_score += criteria.specification_match * 0.15  # 15% weight
-            confidence_score += criteria.price_similarity * 0.20  # 20% weight
-            
-            criteria.overall_confidence = min(1.0, confidence_score)
+        # The improved matcher already calculated the overall confidence with stricter model validation
         
         return criteria
     

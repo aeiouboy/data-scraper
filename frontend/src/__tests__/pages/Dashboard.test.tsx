@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '../../test-utils';
 import Dashboard from '../../pages/Dashboard';
-import { analyticsApi, retailerApi } from '../../services/api';
+// import { analyticsApi, retailerApi } from '../../services/api'; // Unused imports
 import { useQuery } from '@tanstack/react-query';
 import { setupAllApiMocks } from '../../test-utils/mockHelpers';
 

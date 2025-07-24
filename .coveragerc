@@ -1,16 +1,21 @@
 [run]
-source = app
+# Coverage configuration
+source = src
 omit = 
     */tests/*
+    */test_*.py
+    */conftest.py
     */venv/*
-    */node_modules/*
+    */virtualenv/*
     */__pycache__/*
     */migrations/*
-    */.pytest_cache/*
-    setup.py
-    run_*.py
+    */settings/*
+    */manage.py
+    */wsgi.py
+    */asgi.py
 
 [report]
+# Reporting configuration
 exclude_lines =
     pragma: no cover
     def __repr__
@@ -23,14 +28,15 @@ exclude_lines =
     class .*\bProtocol\):
     @(abc\.)?abstractmethod
 
-[html]
-directory = coverage/html
-show_contexts = true
-skip_covered = false
+ignore_errors = True
+show_missing = True
+precision = 2
+skip_covered = False
+skip_empty = False
 
-[json]
-output = coverage/coverage.json
-pretty_print = true
+[html]
+directory = htmlcov
+title = Native Scraping Test Coverage Report
 
 [xml]
-output = coverage/coverage.xml
+output = coverage.xml

@@ -1,505 +1,548 @@
 """
-Advanced product matching algorithm with ML-powered similarity and confidence scoring
+Advanced Product Matcher
+Integrates all Phase 1 improvements for enhanced product matching accuracy
 """
-import re
-import logging
-from typing import List, Dict, Optional, Tuple, Any
-from datetime import datetime
-import numpy as np
-from fuzzywuzzy import fuzz
-from sentence_transformers import SentenceTransformer
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 
-from src.models.matching_models import (
-    MatchFeature,
-    ConfidenceBreakdown,
-    NormalizedSpecifications,
-    CanonicalProduct,
-    ProductMatchGroup,
-    MatchMetadata,
-    MatchedProduct,
-    PriceAnalysis,
-    PriceVolatilityLevel,
-    SavingsOpportunity,
-    MatchingAlgorithmConfig
-)
-from src.services.supabase_service import SupabaseService
+import logging
+from typing import Dict, List, Optional, Tuple, Any
+from dataclasses import dataclass
+import time
+
+from src.utils.text_normalizer_enhanced import EnhancedTextNormalizer
+from src.utils.brand_alias_manager import BrandAliasManager
+from src.utils.sku_extractor import SkuExtractor
+from src.utils.confidence_calculator import ConfidenceCalculator, ConfidenceResult
+from src.config.text_normalization_config import DEFAULT_CONFIG
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class ProductMatchResult:
+    """Result of product matching with detailed information"""
+    product1: Dict
+    product2: Dict
+    confidence: float
+    confidence_result: ConfidenceResult
+    match_quality: str
+    processing_time: float
+    metadata: Dict[str, Any]
+
+
 class AdvancedProductMatcher:
-    """Advanced product matching with multi-stage pipeline and ML"""
+    """
+    Advanced product matching system integrating all Phase 1 improvements:
+    - Enhanced Thai text normalization
+    - Brand alias management
+    - Advanced SKU extraction
+    - Multi-factor confidence scoring
+    """
     
-    def __init__(self, supabase_service: SupabaseService, config: Optional[MatchingAlgorithmConfig] = None):
-        self.supabase = supabase_service
-        self.config = config or MatchingAlgorithmConfig()
-        self._ml_model = None
-        self._executor = ThreadPoolExecutor(max_workers=4)
+    def __init__(self, config: Optional[Dict] = None):
+        """Initialize advanced product matcher with configuration"""
+        self.config = config or DEFAULT_CONFIG
         
-    @property
-    def ml_model(self) -> SentenceTransformer:
-        """Lazy load ML model"""
-        if self._ml_model is None and self.config.use_ml_matching:
-            self._ml_model = SentenceTransformer(self.config.ml_model_name)
-        return self._ml_model
+        # Initialize components
+        self.text_normalizer = EnhancedTextNormalizer(self.config)
+        self.brand_manager = BrandAliasManager()
+        self.sku_extractor = SkuExtractor()
+        self.confidence_calculator = ConfidenceCalculator(self.config)
+        
+        # Matching statistics
+        self.stats = {
+            'total_matches': 0,
+            'successful_matches': 0,
+            'processing_time': 0.0,
+            'error_count': 0
+        }
+        
+        logger.info("Advanced Product Matcher initialized")
     
-    async def match_products(self, products: List[Dict[str, Any]]) -> List[ProductMatchGroup]:
-        """Match products across retailers using advanced algorithm"""
-        start_time = datetime.now()
+    def match_products(self, product1: Dict, product2: Dict, 
+                      context: Optional[Dict] = None) -> ProductMatchResult:
+        """
+        Match two products using advanced algorithms
         
-        # Group products by potential matches
-        match_groups = await self._group_products(products)
+        Args:
+            product1: First product dictionary
+            product2: Second product dictionary
+            context: Optional context for matching
+            
+        Returns:
+            ProductMatchResult with confidence and details
+        """
+        start_time = time.time()
         
-        # Process each group
+        try:
+            # Enrich products with extracted information
+            enriched_product1 = self._enrich_product(product1)
+            enriched_product2 = self._enrich_product(product2)
+            
+            # Calculate confidence using all factors
+            confidence_result = self.confidence_calculator.calculate_confidence(
+                enriched_product1, enriched_product2, context
+            )
+            
+            # Determine match quality
+            match_quality = self._determine_match_quality(confidence_result)
+            
+            # Calculate processing time
+            processing_time = time.time() - start_time
+            
+            # Update statistics
+            self._update_stats(confidence_result.overall_confidence, processing_time)
+            
+            # Create result
+            result = ProductMatchResult(
+                product1=enriched_product1,
+                product2=enriched_product2,
+                confidence=confidence_result.overall_confidence,
+                confidence_result=confidence_result,
+                match_quality=match_quality,
+                processing_time=processing_time,
+                metadata={
+                    'matcher_version': '1.0.0',
+                    'config_version': self.config.get('version', '1.0'),
+                    'timestamp': time.time()
+                }
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error matching products: {e}")
+            self.stats['error_count'] += 1
+            
+            # Return error result
+            return ProductMatchResult(
+                product1=product1,
+                product2=product2,
+                confidence=0.0,
+                confidence_result=None,
+                match_quality='error',
+                processing_time=time.time() - start_time,
+                metadata={'error': str(e)}
+            )
+    
+    def match_product_against_list(self, target_product: Dict, 
+                                 product_list: List[Dict],
+                                 context: Optional[Dict] = None,
+                                 top_k: int = 10) -> List[ProductMatchResult]:
+        """
+        Match a product against a list of products
+        
+        Args:
+            target_product: Product to match against
+            product_list: List of products to search
+            context: Optional context for matching
+            top_k: Number of top matches to return
+            
+        Returns:
+            List of ProductMatchResult sorted by confidence
+        """
         results = []
-        for group in match_groups:
-            if len(group) > 1:
-                match_group = await self._create_match_group(group)
-                if match_group.confidence.overall >= 0.5:  # Default minimum confidence
-                    results.append(match_group)
         
-        processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
-        logger.info(f"Matched {len(products)} products into {len(results)} groups in {processing_time}ms")
+        for product in product_list:
+            try:
+                result = self.match_products(target_product, product, context)
+                results.append(result)
+            except Exception as e:
+                logger.warning(f"Error matching product {product.get('id', 'unknown')}: {e}")
+                continue
+        
+        # Sort by confidence and return top k
+        results.sort(key=lambda x: x.confidence, reverse=True)
+        return results[:top_k]
+    
+    def batch_match_products(self, product_pairs: List[Tuple[Dict, Dict]],
+                           context: Optional[Dict] = None) -> List[ProductMatchResult]:
+        """
+        Match multiple product pairs in batch
+        
+        Args:
+            product_pairs: List of (product1, product2) tuples
+            context: Optional context for matching
+            
+        Returns:
+            List of ProductMatchResult for each pair
+        """
+        results = []
+        
+        for product1, product2 in product_pairs:
+            try:
+                result = self.match_products(product1, product2, context)
+                results.append(result)
+            except Exception as e:
+                logger.warning(f"Error in batch matching: {e}")
+                continue
         
         return results
     
-    async def _group_products(self, products: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
-        """Group products that might be matches"""
-        groups = []
-        processed = set()
+    def _enrich_product(self, product: Dict) -> Dict:
+        """
+        Enrich product with extracted information
         
-        for i, product1 in enumerate(products):
-            if i in processed:
-                continue
-                
-            group = [product1]
-            processed.add(i)
+        Args:
+            product: Product dictionary
             
-            for j, product2 in enumerate(products[i+1:], i+1):
-                if j in processed:
-                    continue
-                    
-                if await self._are_potential_matches(product1, product2):
-                    group.append(product2)
-                    processed.add(j)
+        Returns:
+            Enriched product dictionary
+        """
+        enriched = product.copy()
+        
+        # Extract and normalize product name
+        name = product.get('name', '')
+        if name:
+            enriched['normalized_name'] = self.text_normalizer.normalize(name)
+            enriched['name_tokens'] = enriched['normalized_name'].split()
+        
+        # Extract and normalize brand
+        brand = product.get('brand', '')
+        if brand:
+            enriched['normalized_brand'] = self.brand_manager.normalize_brand(brand)
+            enriched['brand_aliases'] = self.brand_manager.get_brand_aliases(brand)
+        
+        # Extract SKU/model number
+        sku_match = self.sku_extractor.extract_sku(name)
+        if sku_match:
+            enriched['extracted_sku'] = sku_match.sku
+            enriched['sku_confidence'] = sku_match.confidence
+            enriched['sku_normalized'] = sku_match.normalized
+        
+        # Extract specifications
+        specs = self.text_normalizer.extract_specifications(name)
+        if specs:
+            enriched['extracted_specifications'] = specs
+            # Merge with existing specifications
+            if 'specifications' in enriched:
+                enriched['specifications'].update(specs)
+            else:
+                enriched['specifications'] = specs
+        
+        # Find brand in text
+        brand_matches = self.brand_manager.find_brand_in_text(name)
+        if brand_matches:
+            enriched['detected_brands'] = brand_matches
+            # Use highest confidence brand if no brand specified
+            if not brand and brand_matches:
+                enriched['inferred_brand'] = brand_matches[0][0]
+        
+        return enriched
+    
+    def _determine_match_quality(self, confidence_result: ConfidenceResult) -> str:
+        """
+        Determine match quality based on confidence result
+        
+        Args:
+            confidence_result: ConfidenceResult object
             
-            if len(group) > 1:
-                groups.append(group)
+        Returns:
+            Match quality string
+        """
+        if not confidence_result:
+            return 'error'
         
-        return groups
-    
-    async def _are_potential_matches(self, product1: Dict, product2: Dict) -> bool:
-        """Quick check if products could be matches"""
-        # Same retailer products can't match
-        if product1.get('retailer_code') == product2.get('retailer_code'):
-            return False
+        confidence = confidence_result.overall_confidence
         
-        # Category check
-        if self.config.require_same_category:
-            cat1 = self._normalize_category(product1.get('category', ''))
-            cat2 = self._normalize_category(product2.get('category', ''))
-            if cat1 != cat2:
-                return False
-        
-        # Brand check
-        brand1 = self._normalize_brand(product1.get('brand', ''))
-        brand2 = self._normalize_brand(product2.get('brand', ''))
-        if brand1 and brand2 and brand1 != brand2:
-            return False
-        
-        # Price range check
-        price1 = float(product1.get('current_price') or 0)
-        price2 = float(product2.get('current_price') or 0)
-        if price1 > 0 and price2 > 0:
-            price_ratio = max(price1, price2) / min(price1, price2)
-            if price_ratio > (1 + self.config.price_variance_threshold):
-                return False
-        
-        return True
-    
-    async def _create_match_group(self, products: List[Dict[str, Any]]) -> ProductMatchGroup:
-        """Create a match group with confidence scoring"""
-        # Calculate canonical product
-        canonical = await self._determine_canonical_product(products)
-        
-        # Calculate match confidence
-        confidence, features = await self._calculate_confidence(products, canonical)
-        
-        # Create matched products
-        matched_products = [
-            MatchedProduct(
-                product_id=p['id'],
-                retailer_code=p['retailer_code'],
-                retailer_name=p.get('retailer_name', p['retailer_code']),
-                product_name=p['name'],
-                current_price=float(p.get('current_price') or 0),
-                url=p.get('url', ''),
-                availability=p.get('in_stock', True) and 'in_stock' or 'out_of_stock',
-                last_updated=datetime.now()
-            )
-            for p in products
-        ]
-        
-        # Analyze prices
-        price_analysis = await self._analyze_prices(matched_products)
-        
-        # Create metadata
-        metadata = MatchMetadata(
-            algorithm_version="2.0",
-            match_features=features,
-            processing_time_ms=0,  # Would be calculated in real implementation
-            data_sources=['supabase'],
-            created_at=datetime.now()
-        )
-        
-        return ProductMatchGroup(
-            id=f"mg_{datetime.now().timestamp()}",
-            canonical_product=canonical,
-            matched_products=matched_products,
-            confidence=confidence,
-            match_metadata=metadata,
-            price_analysis=price_analysis,
-            created_at=datetime.now(),
-            updated_at=datetime.now()
-        )
-    
-    async def _determine_canonical_product(self, products: List[Dict[str, Any]]) -> CanonicalProduct:
-        """Determine canonical representation from product group"""
-        # Extract common features
-        brands = [self._normalize_brand(p.get('brand', '')) for p in products if p.get('brand')]
-        categories = [p.get('category', '') for p in products if p.get('category')]
-        
-        # Use most common or longest name
-        names = [p['name'] for p in products]
-        canonical_name = max(names, key=len)
-        
-        # Extract key features using NLP
-        key_features = await self._extract_key_features(names)
-        
-        # Normalize specifications
-        specs = await self._normalize_specifications(products)
-        
-        return CanonicalProduct(
-            normalized_name=self._normalize_product_name(canonical_name),
-            brand=brands[0] if brands else "Unknown",
-            category=categories[0] if categories else "Unknown",
-            product_type=self._determine_product_type(canonical_name, categories[0] if categories else ""),
-            key_features=key_features,
-            specifications=specs
-        )
-    
-    async def _calculate_confidence(self, products: List[Dict[str, Any]], canonical: CanonicalProduct) -> Tuple[ConfidenceBreakdown, List[MatchFeature]]:
-        """Calculate match confidence with detailed breakdown"""
-        features = []
-        
-        # Name matching
-        name_scores = []
-        if self.config.use_ml_matching and self.ml_model:
-            # ML-based semantic similarity
-            embeddings = await self._get_embeddings([p['name'] for p in products])
-            name_scores = self._calculate_embedding_similarities(embeddings)
+        if confidence >= 0.95:
+            return 'excellent'
+        elif confidence >= 0.85:
+            return 'very_good'
+        elif confidence >= 0.75:
+            return 'good'
+        elif confidence >= 0.65:
+            return 'fair'
+        elif confidence >= 0.50:
+            return 'poor'
         else:
-            # Fuzzy string matching
-            for i in range(len(products)):
-                for j in range(i+1, len(products)):
-                    score = fuzz.token_sort_ratio(
-                        self._normalize_product_name(products[i]['name']),
-                        self._normalize_product_name(products[j]['name'])
-                    ) / 100.0
-                    name_scores.append(score)
-        
-        avg_name_score = np.mean(name_scores) if name_scores else 0
-        features.append(MatchFeature(
-            name="name_similarity",
-            value=avg_name_score,
-            weight=0.3,
-            matched=avg_name_score >= self.config.min_name_similarity,
-            similarity_score=avg_name_score
-        ))
-        
-        # Brand matching
-        brands = [self._normalize_brand(p.get('brand', '')) for p in products if p.get('brand')]
-        brand_score = 1.0 if len(set(brands)) == 1 and brands else 0.0
-        features.append(MatchFeature(
-            name="brand_match",
-            value=brand_score,
-            weight=0.25,
-            matched=brand_score >= self.config.min_brand_similarity,
-            similarity_score=brand_score
-        ))
-        
-        # Specification matching
-        spec_score = await self._calculate_spec_similarity(products)
-        features.append(MatchFeature(
-            name="specification_match",
-            value=spec_score,
-            weight=0.25,
-            matched=spec_score >= 0.7,
-            similarity_score=spec_score
-        ))
-        
-        # Price consistency
-        prices = [float(p.get('current_price') or 0) for p in products if p.get('current_price') and p.get('current_price') != 0]
-        price_score = self._calculate_price_consistency(prices)
-        features.append(MatchFeature(
-            name="price_consistency",
-            value=price_score,
-            weight=0.15,
-            matched=price_score >= 0.5,
-            similarity_score=price_score
-        ))
-        
-        # Calculate overall confidence
-        confidence = ConfidenceBreakdown(
-            name_match=avg_name_score,
-            brand_match=brand_score,
-            spec_match=spec_score,
-            price_consistency=price_score,
-            user_validation=0.0  # Would come from user feedback
-        )
-        
-        return confidence, features
+            return 'very_poor'
     
-    async def _get_embeddings(self, texts: List[str]) -> np.ndarray:
-        """Get sentence embeddings using ML model"""
-        loop = asyncio.get_event_loop()
-        embeddings = await loop.run_in_executor(
-            self._executor,
-            self.ml_model.encode,
-            texts
-        )
-        return embeddings
+    def _update_stats(self, confidence: float, processing_time: float):
+        """Update matching statistics"""
+        self.stats['total_matches'] += 1
+        self.stats['processing_time'] += processing_time
+        
+        if confidence >= self.config['thresholds']['min_confidence']:
+            self.stats['successful_matches'] += 1
     
-    def _calculate_embedding_similarities(self, embeddings: np.ndarray) -> List[float]:
-        """Calculate cosine similarities between embeddings"""
-        from sklearn.metrics.pairwise import cosine_similarity
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get matching statistics"""
+        stats = self.stats.copy()
         
-        similarities = []
-        for i in range(len(embeddings)):
-            for j in range(i+1, len(embeddings)):
-                sim = cosine_similarity(
-                    embeddings[i].reshape(1, -1),
-                    embeddings[j].reshape(1, -1)
-                )[0][0]
-                similarities.append(sim)
-        
-        return similarities
-    
-    def _calculate_price_consistency(self, prices: List[float]) -> float:
-        """Calculate price consistency score"""
-        if not prices or len(prices) < 2:
-            return 1.0
-        
-        # Calculate coefficient of variation
-        mean_price = np.mean(prices)
-        std_price = np.std(prices)
-        
-        if mean_price == 0:
-            return 0.0
-        
-        cv = std_price / mean_price
-        
-        # Convert to score (lower CV = higher score)
-        if cv <= 0.05:
-            return 1.0
-        elif cv <= 0.1:
-            return 0.9
-        elif cv <= 0.2:
-            return 0.7
-        elif cv <= 0.3:
-            return 0.5
-        elif cv <= 0.5:
-            return 0.3
+        if stats['total_matches'] > 0:
+            stats['success_rate'] = stats['successful_matches'] / stats['total_matches']
+            stats['avg_processing_time'] = stats['processing_time'] / stats['total_matches']
         else:
-            return 0.1
-    
-    async def _calculate_spec_similarity(self, products: List[Dict[str, Any]]) -> float:
-        """Calculate specification similarity between products"""
-        # Extract specifications from product descriptions
-        all_specs = []
-        for product in products:
-            specs = self._extract_specifications(product.get('description', ''))
-            if product.get('specifications'):
-                specs.update(product['specifications'])
-            all_specs.append(specs)
+            stats['success_rate'] = 0.0
+            stats['avg_processing_time'] = 0.0
         
-        if not all_specs:
-            return 0.5  # No specs to compare
-        
-        # Calculate Jaccard similarity
-        similarities = []
-        for i in range(len(all_specs)):
-            for j in range(i+1, len(all_specs)):
-                spec_keys1 = set(all_specs[i].keys())
-                spec_keys2 = set(all_specs[j].keys())
-                
-                if not spec_keys1 or not spec_keys2:
-                    continue
-                
-                intersection = spec_keys1 & spec_keys2
-                union = spec_keys1 | spec_keys2
-                
-                jaccard = len(intersection) / len(union) if union else 0
-                similarities.append(jaccard)
-        
-        return np.mean(similarities) if similarities else 0.5
-    
-    def _extract_specifications(self, text: str) -> Dict[str, str]:
-        """Extract specifications from product description"""
-        specs = {}
-        
-        # Handle None or empty text
-        if not text:
-            return specs
-        
-        # Convert to string if not already
-        text = str(text)
-        
-        # Common specification patterns
-        patterns = [
-            r'(\w+):\s*([^,\n]+)',  # key: value
-            r'(\w+)\s*=\s*([^,\n]+)',  # key = value
-            r'(\w+)\s+(\d+\s*\w+)',  # key value with units
-        ]
-        
-        for pattern in patterns:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            for key, value in matches:
-                specs[key.lower()] = value.strip()
-        
-        return specs
-    
-    async def _analyze_prices(self, products: List[MatchedProduct]) -> PriceAnalysis:
-        """Analyze prices across matched products"""
-        prices = [(p.retailer_code, p.current_price) for p in products if p.current_price > 0]
-        
-        if not prices:
-            return PriceAnalysis(
-                current_best_price=0,
-                current_best_retailer="Unknown",
-                volatility=PriceVolatilityLevel.STABLE,
-                volatility_score=0,
-                last_updated=datetime.now()
-            )
-        
-        # Find best price
-        best_retailer, best_price = min(prices, key=lambda x: x[1])
-        
-        # Calculate volatility
-        price_values = [p[1] for p in prices]
-        volatility_score = np.std(price_values) / np.mean(price_values) if len(price_values) > 1 else 0
-        
-        # Determine volatility level
-        if volatility_score < 0.05:
-            volatility_level = PriceVolatilityLevel.STABLE
-        elif volatility_score < 0.1:
-            volatility_level = PriceVolatilityLevel.LOW
-        elif volatility_score < 0.2:
-            volatility_level = PriceVolatilityLevel.MODERATE
-        elif volatility_score < 0.4:
-            volatility_level = PriceVolatilityLevel.HIGH
-        else:
-            volatility_level = PriceVolatilityLevel.EXTREME
-        
-        # Calculate savings opportunity
-        savings_opportunity = None
-        if len(prices) > 1:
-            max_price = max(price_values)
-            if max_price > best_price:
-                savings_opportunity = SavingsOpportunity(
-                    amount=max_price - best_price,
-                    percentage=((max_price - best_price) / max_price) * 100,
-                    best_retailer=best_retailer,
-                    compared_to_retailers=[r for r, _ in prices if r != best_retailer],
-                    confidence=0.9  # High confidence in direct price comparison
-                )
-        
-        return PriceAnalysis(
-            current_best_price=best_price,
-            current_best_retailer=best_retailer,
-            savings_opportunity=savings_opportunity,
-            volatility=volatility_level,
-            volatility_score=volatility_score,
-            last_updated=datetime.now()
-        )
-    
-    async def _extract_key_features(self, names: List[str]) -> List[str]:
-        """Extract key features from product names"""
-        # Common feature patterns
-        feature_patterns = [
-            r'\b\d+(?:\.\d+)?\s*(?:GB|TB|MB|L|ml|kg|g|W|inch|")\b',  # Capacity/size
-            r'\b(?:HD|FHD|4K|8K|OLED|LED|LCD)\b',  # Display tech
-            r'\b(?:WiFi|Bluetooth|USB|HDMI)\b',  # Connectivity
-            r'\b(?:Energy Star|Inverter|Smart)\b',  # Features
-        ]
-        
-        features = set()
-        for name in names:
-            for pattern in feature_patterns:
-                matches = re.findall(pattern, name, re.IGNORECASE)
-                features.update(matches)
-        
-        return list(features)
-    
-    async def _normalize_specifications(self, products: List[Dict[str, Any]]) -> Optional[NormalizedSpecifications]:
-        """Normalize specifications across products"""
-        # This would be more sophisticated in production
-        # For now, return None
-        return None
-    
-    def _normalize_product_name(self, name: str) -> str:
-        """Normalize product name for comparison"""
-        # Remove special characters and extra spaces
-        name = re.sub(r'[^\w\s-]', ' ', name)
-        name = re.sub(r'\s+', ' ', name)
-        return name.strip().lower()
-    
-    def _normalize_brand(self, brand: str) -> str:
-        """Normalize brand name"""
-        if not brand:
-            return ""
-        
-        # Common brand aliases
-        brand_aliases = {
-            'lg': ['lg electronics', 'lg electric'],
-            'samsung': ['samsung electronics'],
-            'sony': ['sony corporation'],
-            'panasonic': ['panasonic corporation'],
+        # Add component statistics
+        stats['component_stats'] = {
+            'text_normalizer': self.text_normalizer.get_cache_stats(),
+            'brand_manager': self.brand_manager.get_brand_statistics(),
+            'sku_extractor': self.sku_extractor.get_pattern_statistics()
         }
         
-        normalized = brand.strip().lower()
-        
-        # Check aliases
-        for canonical, aliases in brand_aliases.items():
-            if normalized in aliases:
-                return canonical
-        
-        return normalized
+        return stats
     
-    def _normalize_category(self, category: str) -> str:
-        """Normalize category name"""
-        if not category:
-            return ""
-        
-        # Remove retailer-specific prefixes
-        category = re.sub(r'^[A-Z]+\d+\s*-\s*', '', category)
-        
-        return category.strip().lower()
+    def clear_caches(self):
+        """Clear all component caches"""
+        self.text_normalizer.clear_cache()
+        logger.info("All caches cleared")
     
-    def _determine_product_type(self, name: str, category: str) -> str:
-        """Determine product type from name and category"""
-        name_lower = name.lower()
+    def validate_configuration(self) -> List[str]:
+        """Validate configuration and return issues"""
+        issues = []
         
-        # Common product type patterns
-        if 'refrigerator' in name_lower or 'fridge' in name_lower:
-            return 'refrigerator'
-        elif 'tv' in name_lower or 'television' in name_lower:
-            return 'television'
-        elif 'air condition' in name_lower or 'แอร์' in name_lower:
-            return 'air_conditioner'
-        elif 'wash' in name_lower and 'machine' in name_lower:
-            return 'washing_machine'
-        else:
-            return category.split()[0] if category else 'unknown'
+        # Validate text normalization config
+        if not self.config.get('brand_mappings'):
+            issues.append("No brand mappings configured")
+        
+        if not self.config.get('model_patterns'):
+            issues.append("No model patterns configured")
+        
+        # Validate brand manager
+        brand_issues = self.brand_manager.validate_brand_mappings()
+        issues.extend(brand_issues)
+        
+        # Validate thresholds
+        thresholds = self.config.get('thresholds', {})
+        if thresholds.get('min_confidence', 0) < 0 or thresholds.get('min_confidence', 0) > 1:
+            issues.append("Invalid minimum confidence threshold")
+        
+        return issues
+    
+    def export_configuration(self, file_path: str):
+        """Export current configuration to file"""
+        try:
+            import json
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(self.config, f, indent=2, ensure_ascii=False)
+            logger.info(f"Configuration exported to {file_path}")
+        except Exception as e:
+            logger.error(f"Error exporting configuration: {e}")
+    
+    def optimize_for_retailer(self, retailer: str):
+        """Optimize matching for specific retailer"""
+        retailer_configs = {
+            'homepro': {
+                'sku_patterns': [
+                    r'\b(HP[0-9]{6,8})\b',
+                    r'\b([A-Z]{2,3}[-]?[0-9]{4,6}[-]?[A-Z]{0,2})\b'
+                ],
+                'confidence_adjustment': 0.05
+            },
+            'thaiwatsadu': {
+                'sku_patterns': [
+                    r'\b(TWD[0-9]{6,8})\b',
+                    r'\b([A-Z]{3}[-]?[0-9]{3,4}[-]?[A-Z]{1,2})\b'
+                ],
+                'confidence_adjustment': 0.05
+            }
+        }
+        
+        if retailer in retailer_configs:
+            config = retailer_configs[retailer]
+            
+            # Add retailer-specific SKU patterns
+            for pattern in config['sku_patterns']:
+                self.sku_extractor.add_custom_pattern(pattern, f"{retailer}_specific")
+            
+            logger.info(f"Optimized for retailer: {retailer}")
+    
+    def analyze_match_failure(self, product1: Dict, product2: Dict) -> Dict[str, Any]:
+        """
+        Analyze why two products failed to match
+        
+        Args:
+            product1: First product
+            product2: Second product
+            
+        Returns:
+            Analysis of match failure
+        """
+        result = self.match_products(product1, product2)
+        
+        analysis = {
+            'overall_confidence': result.confidence,
+            'match_quality': result.match_quality,
+            'failure_reasons': [],
+            'improvement_suggestions': []
+        }
+        
+        if result.confidence_result:
+            # Analyze each factor
+            for factor in result.confidence_result.factors:
+                if factor.score < 0.5:
+                    analysis['failure_reasons'].append({
+                        'factor': factor.name,
+                        'score': factor.score,
+                        'details': factor.details
+                    })
+        
+        # Generate improvement suggestions
+        if result.confidence < 0.5:
+            analysis['improvement_suggestions'].append("Consider manual review")
+        
+        if any(f.name == 'brand_match' and f.score < 0.3 for f in result.confidence_result.factors):
+            analysis['improvement_suggestions'].append("Check brand alias mappings")
+        
+        if any(f.name == 'sku_match' and f.score < 0.3 for f in result.confidence_result.factors):
+            analysis['improvement_suggestions'].append("Verify SKU extraction patterns")
+        
+        return analysis
+
+
+# Example usage and testing
+if __name__ == "__main__":
+    # Initialize advanced matcher
+    matcher = AdvancedProductMatcher()
+    
+    # Test products
+    test_products = [
+        {
+            'id': 1,
+            'name': 'MITSUBISHI แอร์ติดผนัง รุ่น MSY-KP13VF 12000BTU',
+            'brand': 'MITSUBISHI',
+            'price': 15000,
+            'category': 'air-conditioner',
+            'retailer': 'homepro'
+        },
+        {
+            'id': 2,
+            'name': 'มิตซูบิชิ เครื่องปรับอากาศ MSY-KP13VF 12,000 บีทียู',
+            'brand': 'มิตซูบิชิ',
+            'price': 15500,
+            'category': 'air-conditioner',
+            'retailer': 'thaiwatsadu'
+        },
+        {
+            'id': 3,
+            'name': 'Samsung ตู้เย็น RT29K5511S8 300 ลิตร',
+            'brand': 'Samsung',
+            'price': 12000,
+            'category': 'refrigerator',
+            'retailer': 'homepro'
+        },
+        {
+            'id': 4,
+            'name': 'ซัมซุง ตู้เย็น RT29K5511S8 300L',
+            'brand': 'ซัมซุง',
+            'price': 12200,
+            'category': 'refrigerator',
+            'retailer': 'globalhouse'
+        }
+    ]
+    
+    print("Advanced Product Matcher Test:")
+    print("=" * 60)
+    
+    # Test individual matches
+    print("\nIndividual Product Matches:")
+    print("-" * 40)
+    
+    test_pairs = [
+        (test_products[0], test_products[1]),  # Same AC, different retailers
+        (test_products[2], test_products[3]),  # Same fridge, different retailers
+        (test_products[0], test_products[2]),  # Different products
+    ]
+    
+    for i, (product1, product2) in enumerate(test_pairs, 1):
+        print(f"\nTest {i}:")
+        print(f"  Product 1: {product1['name']}")
+        print(f"  Product 2: {product2['name']}")
+        
+        result = matcher.match_products(product1, product2)
+        
+        print(f"  Confidence: {result.confidence:.3f}")
+        print(f"  Match Quality: {result.match_quality}")
+        print(f"  Processing Time: {result.processing_time:.3f}s")
+        
+        if result.confidence_result:
+            print(f"  Recommendation: {result.confidence_result.recommendation}")
+            
+            # Show top factors
+            sorted_factors = sorted(
+                result.confidence_result.factors, 
+                key=lambda f: f.score * f.weight, 
+                reverse=True
+            )
+            print(f"  Top Factors:")
+            for factor in sorted_factors[:3]:
+                weighted_score = factor.score * factor.weight
+                print(f"    {factor.name}: {factor.score:.3f} × {factor.weight:.3f} = {weighted_score:.3f}")
+    
+    # Test batch matching
+    print(f"\n\nBatch Matching Test:")
+    print("-" * 40)
+    
+    batch_results = matcher.batch_match_products(test_pairs)
+    
+    print(f"Processed {len(batch_results)} pairs")
+    avg_confidence = sum(r.confidence for r in batch_results) / len(batch_results)
+    print(f"Average confidence: {avg_confidence:.3f}")
+    
+    # Test matching against list
+    print(f"\n\nMatch Against List Test:")
+    print("-" * 40)
+    
+    target_product = test_products[0]
+    search_results = matcher.match_product_against_list(
+        target_product, 
+        test_products[1:], 
+        top_k=3
+    )
+    
+    print(f"Target: {target_product['name']}")
+    print(f"Found {len(search_results)} matches:")
+    
+    for i, result in enumerate(search_results, 1):
+        print(f"  {i}. {result.product2['name']}")
+        print(f"     Confidence: {result.confidence:.3f}")
+        print(f"     Quality: {result.match_quality}")
+    
+    # Show statistics
+    print(f"\n\nMatcher Statistics:")
+    print("-" * 40)
+    
+    stats = matcher.get_statistics()
+    print(f"Total matches: {stats['total_matches']}")
+    print(f"Successful matches: {stats['successful_matches']}")
+    print(f"Success rate: {stats['success_rate']:.3f}")
+    print(f"Average processing time: {stats['avg_processing_time']:.3f}s")
+    print(f"Error count: {stats['error_count']}")
+    
+    # Component statistics
+    print(f"\nComponent Statistics:")
+    for component, component_stats in stats['component_stats'].items():
+        print(f"  {component}: {component_stats}")
+    
+    # Test configuration validation
+    print(f"\n\nConfiguration Validation:")
+    print("-" * 40)
+    
+    issues = matcher.validate_configuration()
+    if issues:
+        print("Issues found:")
+        for issue in issues:
+            print(f"  - {issue}")
+    else:
+        print("Configuration is valid")
+    
+    # Test match failure analysis
+    print(f"\n\nMatch Failure Analysis:")
+    print("-" * 40)
+    
+    failure_analysis = matcher.analyze_match_failure(test_products[0], test_products[2])
+    print(f"Confidence: {failure_analysis['overall_confidence']:.3f}")
+    print(f"Quality: {failure_analysis['match_quality']}")
+    
+    if failure_analysis['failure_reasons']:
+        print("Failure reasons:")
+        for reason in failure_analysis['failure_reasons']:
+            print(f"  - {reason['factor']}: {reason['score']:.3f}")
+    
+    if failure_analysis['improvement_suggestions']:
+        print("Improvement suggestions:")
+        for suggestion in failure_analysis['improvement_suggestions']:
+            print(f"  - {suggestion}")

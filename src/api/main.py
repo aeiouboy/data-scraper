@@ -8,7 +8,7 @@ import logging
 from contextlib import asynccontextmanager
 import os
 
-from src.api.routers import products, scraping, analytics, config, retailers, price_comparisons, price_comparisons_v2, monitoring, categories, schedules, matching, price_comparisons_advanced, price_comparisons_v2_optimized
+from src.api.routers import products, scraping, analytics, config, retailers, price_comparisons, price_comparisons_v2, monitoring, categories, schedules, matching, price_comparisons_advanced, price_comparisons_v2_optimized, matching_optimized, matching_ultra_strict, price_comparisons_v2_fixed, price_comparisons_v3_enhanced
 from src.services.supabase_service import SupabaseService
 from src.core.logging_config import setup_logging
 
@@ -59,11 +59,15 @@ app.include_router(retailers.router, prefix="/api/retailers", tags=["retailers"]
 app.include_router(price_comparisons.router, prefix="/api/price-comparisons", tags=["price-comparisons"])
 app.include_router(price_comparisons_v2.router, prefix="/api/price-comparisons-v2", tags=["price-comparisons-v2"])
 app.include_router(price_comparisons_v2_optimized.router, prefix="/api/price-comparisons-v2", tags=["price-comparisons-v2-optimized"])
+app.include_router(price_comparisons_v2_fixed.router, prefix="/api/price-comparisons-v2-fixed", tags=["price-comparisons-v2-fixed"])
 app.include_router(monitoring.router, prefix="/api/monitoring", tags=["monitoring"])
 app.include_router(categories.router, prefix="/api/categories", tags=["categories"])
 app.include_router(schedules.router, prefix="/api", tags=["schedules"])
 app.include_router(matching.router, prefix="/api/matching", tags=["matching"])
+app.include_router(matching_optimized.router, tags=["matching-optimized"])
+app.include_router(matching_ultra_strict.router, tags=["matching-ultra-strict"])
 app.include_router(price_comparisons_advanced.router, tags=["price-comparisons-advanced"])
+app.include_router(price_comparisons_v3_enhanced.router, tags=["price-comparisons-v3-enhanced"])
 
 
 @app.get("/")
@@ -80,9 +84,12 @@ async def root():
             "retailers": "/api/retailers",
             "price-comparisons": "/api/price-comparisons",
             "price-comparisons-v2": "/api/price-comparisons-v2",
+            "price-comparisons-v2-fixed": "/api/price-comparisons-v2-fixed",
             "monitoring": "/api/monitoring",
             "categories": "/api/categories",
             "matching": "/api/matching",
+            "matching-optimized": "/api/matching-optimized",
+            "matching-ultra-strict": "/api/matching-ultra-strict",
             "docs": "/docs",
             "redoc": "/redoc"
         }

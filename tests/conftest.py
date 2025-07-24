@@ -9,6 +9,11 @@ from fastapi.testclient import TestClient
 from typing import AsyncGenerator, Generator
 import tempfile
 import os
+import sys
+from pathlib import Path
+
+# Add src to path for native scraping tests
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 # Configure asyncio for testing
 pytest_asyncio.fixture_scope_function = True
@@ -264,3 +269,197 @@ def malicious_inputs():
             "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
         ]
     }
+
+
+# Native Scraping Test Fixtures
+@pytest.fixture
+def mock_retailer_config():
+    """Mock retailer configuration for native scraping tests"""
+    return {
+        'name': 'Test Retailer',
+        'code': 'TEST',
+        'base_url': 'https://test-retailer.com',
+        'rate_limit_delay': 0.1,
+        'max_concurrent': 2,
+        'retry_attempts': 2,
+        'timeout': 5,
+        'scraping_method': 'native',
+        'primary_strategy': 'native',
+        'fallback_strategy': 'firecrawl',
+        'success_rate_threshold': 0.8,
+        'response_time_threshold': 5.0,
+        'fallback_after_failures': 2,
+        'min_data_quality_score': 0.7,
+        'category_urls': [
+            'https://test-retailer.com/category/electronics',
+            'https://test-retailer.com/category/tools'
+        ],
+        'product_url_patterns': ['/product/', '/p/'],
+        'search_patterns': {
+            'url_pattern': '/search?q={query}',
+            'query_parameter': 'q'
+        },
+        'selectors': {
+            'product_name': ['.product-title', 'h1.title'],
+            'price': ['.price', '.cost'],
+            'brand': ['.brand-name', '.manufacturer'],
+            'sku': ['.sku', '.product-code'],
+            'description': ['.description', '.product-info'],
+            'images': ['.product-image img', '.gallery img'],
+            'availability': ['.stock-status', '.availability'],
+            'rating': ['.rating-score', '.product-rating'],
+            'reviews_count': ['.review-count', '.reviews-total'],
+            'product_links': ['.product-item a', '.product-card a'],
+            'category_name': ['.category-title', '.page-title'],
+            'pagination': ['.pagination a', '.page-nav a']
+        }
+    }
+
+
+@pytest.fixture
+def sample_product_html():
+    """Sample HTML for product page testing"""
+    return """
+    <html>
+        <head>
+            <title>Test Product - Test Retailer</title>
+            <meta name="description" content="A high-quality test product">
+        </head>
+        <body>
+            <div class="product-container">
+                <h1 class="product-title">High-Quality Test Product</h1>
+                <div class="product-details">
+                    <span class="brand-name">TestBrand</span>
+                    <span class="sku">SKU-12345</span>
+                    <div class="price">฿1,299.99</div>
+                    <div class="description">
+                        This is a comprehensive test product with multiple features.
+                        Perfect for testing scraping functionality.
+                    </div>
+                    <div class="stock-status">In Stock</div>
+                    <div class="rating-score">4.5 out of 5 stars</div>
+                    <div class="review-count">123 reviews</div>
+                </div>
+                <div class="product-images">
+                    <img src="/images/product1.jpg" alt="Product Image 1">
+                    <img src="/images/product2.jpg" alt="Product Image 2">
+                </div>
+                <div class="specifications">
+                    <table>
+                        <tr><td>Weight</td><td>2.5 kg</td></tr>
+                        <tr><td>Dimensions</td><td>30x20x15 cm</td></tr>
+                        <tr><td>Material</td><td>High-grade plastic</td></tr>
+                    </table>
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+
+
+@pytest.fixture
+def sample_category_html():
+    """Sample HTML for category page testing"""
+    return """
+    <html>
+        <head>
+            <title>Electronics - Test Retailer</title>
+        </head>
+        <body>
+            <div class="category-container">
+                <h1 class="category-title">Electronics</h1>
+                <div class="product-grid">
+                    <div class="product-item">
+                        <a href="/product/smartphone-123">
+                            <img src="/images/smartphone.jpg" alt="Smartphone">
+                            <h3>Test Smartphone</h3>
+                            <span class="price">฿15,999</span>
+                        </a>
+                    </div>
+                    <div class="product-item">
+                        <a href="/product/laptop-456">
+                            <img src="/images/laptop.jpg" alt="Laptop">
+                            <h3>Test Laptop</h3>
+                            <span class="price">฿25,999</span>
+                        </a>
+                    </div>
+                    <div class="product-item">
+                        <a href="/product/headphones-789">
+                            <img src="/images/headphones.jpg" alt="Headphones">
+                            <h3>Test Headphones</h3>
+                            <span class="price">฿2,999</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="pagination">
+                    <a href="/category/electronics?page=1">1</a>
+                    <a href="/category/electronics?page=2">2</a>
+                    <a href="/category/electronics?page=3">3</a>
+                    <a href="/category/electronics?page=2">Next</a>
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+
+
+@pytest.fixture
+def mock_aiohttp_session():
+    """Mock aiohttp session for testing"""
+    from aiohttp import ClientSession
+    
+    session = Mock(spec=ClientSession)
+    
+    # Mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.text = AsyncMock(return_value="<html><body>Test content</body></html>")
+    mock_response.headers = {'content-type': 'text/html'}
+    
+    # Mock context manager
+    mock_context = AsyncMock()
+    mock_context.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_context.__aexit__ = AsyncMock(return_value=None)
+    
+    session.get = Mock(return_value=mock_context)
+    session.close = AsyncMock()
+    session.closed = False
+    
+    return session
+
+
+@pytest.fixture
+def performance_thresholds():
+    """Performance test thresholds"""
+    return {
+        'response_time': 5.0,  # seconds
+        'success_rate': 0.95,   # 95%
+        'concurrent_requests': 5,
+        'requests_per_second': 2.0
+    }
+
+
+# Configure pytest markers for native scraping tests
+def pytest_configure(config):
+    """Configure pytest markers"""
+    config.addinivalue_line(
+        "markers", "unit: mark test as unit test"
+    )
+    config.addinivalue_line(
+        "markers", "integration: mark test as integration test"
+    )
+    config.addinivalue_line(
+        "markers", "e2e: mark test as end-to-end test"
+    )
+    config.addinivalue_line(
+        "markers", "performance: mark test as performance test"
+    )
+    config.addinivalue_line(
+        "markers", "slow: mark test as slow running"
+    )
+    config.addinivalue_line(
+        "markers", "network: mark test as requiring network access"
+    )
+    config.addinivalue_line(
+        "markers", "native: mark test as native scraping test"
+    )

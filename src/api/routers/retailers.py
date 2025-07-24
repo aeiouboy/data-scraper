@@ -63,17 +63,44 @@ async def get_retailer_summary(request: Request):
             code = retailer_config.code
             
             try:
-                # Get product count and statistics for this retailer
-                response = supabase.client.table('products')\
-                    .select('id, current_price, availability, monitoring_tier, category, brand, scraped_at')\
+                # Get product count using efficient count query first
+                count_response = supabase.client.table('products')\
+                    .select('id', count='exact')\
                     .eq('retailer_code', code)\
                     .execute()
                 
-                products = response.data if response.data else []
+                total_products = count_response.count or 0
+                
+                # Get count of products with proper categories
+                categorized_response = supabase.client.table('products')\
+                    .select('id', count='exact')\
+                    .eq('retailer_code', code)\
+                    .not_.is_('category', 'null')\
+                    .not_.eq('category', '')\
+                    .not_.eq('category', 'General')\
+                    .execute()
+                
+                categorized_products = categorized_response.count or 0
+                
+                if total_products > 0:
+                    # Get sample data for statistics (limit to avoid timeout)
+                    # For large datasets, use a representative sample
+                    limit = min(total_products, 5000)  # Cap at 5000 for performance
+                    
+                    response = supabase.client.table('products')\
+                        .select('id, current_price, availability, monitoring_tier, category, brand, scraped_at')\
+                        .eq('retailer_code', code)\
+                        .limit(limit)\
+                        .execute()
+                    
+                    products = response.data if response.data else []
+                else:
+                    products = []
+                    
             except Exception as e:
                 logger.warning(f"Error fetching products for retailer {code}: {str(e)}")
                 products = []
-            total_products = len(products)
+                total_products = 0
             
             if total_products > 0:
                 # Calculate statistics
@@ -105,7 +132,7 @@ async def get_retailer_summary(request: Request):
                     code=code,
                     name=retailer_config.name,
                     market_position=retailer_config.market_position,
-                    actual_products=total_products,
+                    actual_products=categorized_products,  # Use categorized count instead of total
                     in_stock_products=in_stock,
                     priced_products=priced,
                     avg_price=avg_price,

@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 
 from src.services.supabase_service import SupabaseService
+from src.utils.product_matcher_ultra_strict import UltraStrictProductMatcher
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["price-comparisons-v2"])
@@ -24,7 +25,8 @@ async def get_detailed_comparisons(
     min_savings: float = Query(default=0, ge=0, description="Minimum savings amount"),
     min_savings_percent: float = Query(default=0, ge=0, le=100, description="Minimum savings percentage"),
     min_confidence: float = Query(default=0.5, ge=0, le=1, description="Minimum match confidence"),
-    category: Optional[str] = Query(None, description="Filter by category")
+    category: Optional[str] = Query(None, description="Filter by category"),
+    matcher_mode: Optional[str] = Query(default="standard", description="Matching mode: 'standard' or 'ultra-strict'")
 ):
     """
     Get detailed price comparisons with individual retailer prices
@@ -49,6 +51,12 @@ async def get_detailed_comparisons(
         
         matches_result = query.execute()
         matches = matches_result.data if matches_result.data else []
+        
+        # Initialize ultra-strict matcher if needed
+        ultra_strict_matcher = None
+        if matcher_mode == "ultra-strict":
+            ultra_strict_matcher = UltraStrictProductMatcher()
+            logger.info(f"Ultra-strict mode activated for {len(matches)} matches")
         
         detailed_comparisons = []
         
@@ -84,6 +92,7 @@ async def get_detailed_comparisons(
             }]
             
             # Get matched products
+            matched_products_data = []
             for matched_id in match.get('matched_product_ids', []):
                 matched_result = supabase.client.table('products')\
                     .select('*')\
@@ -92,20 +101,74 @@ async def get_detailed_comparisons(
                     .execute()
                 
                 if matched_result.data:
-                    matched_product = matched_result.data
-                    retailer_prices.append({
-                        'retailerCode': matched_product['retailer_code'],
-                        'retailerName': matched_product['retailer_name'],
-                        'productId': matched_product['id'],
-                        'productName': matched_product['name'],
-                        'price': float(matched_product['current_price']) if matched_product.get('current_price') else 0,
-                        'originalPrice': float(matched_product['original_price']) if matched_product.get('original_price') else None,
-                        'discount': matched_product.get('discount_percentage', 0),
-                        'url': matched_product.get('url'),
-                        'image': matched_product['images'][0] if matched_product.get('images') else None,
-                        'inStock': matched_product.get('availability') == 'in_stock',
-                        'lastUpdated': matched_product.get('updated_at')
-                    })
+                    matched_products_data.append(matched_result.data)
+            
+            # Ultra-strict validation: check each matched product pair
+            if ultra_strict_matcher:
+                validated_products = [master_product]  # Always include master product
+                
+                for matched_product in matched_products_data:
+                    # Ensure products have specifications field for ultra-strict matching
+                    # Also handle SKU field - if it's a pure numeric ID, don't pass it
+                    master_sku = master_product.get('sku', '')
+                    matched_sku = matched_product.get('sku', '')
+                    
+                    master_with_specs = {
+                        **master_product,
+                        'specifications': master_product.get('specifications', {}),
+                        # Only include SKU if it's not a pure numeric ID
+                        'sku': master_sku if not master_sku.isdigit() else ''
+                    }
+                    matched_with_specs = {
+                        **matched_product,
+                        'specifications': matched_product.get('specifications', {}),
+                        # Only include SKU if it's not a pure numeric ID
+                        'sku': matched_sku if not matched_sku.isdigit() else ''
+                    }
+                    
+                    # Validate match between master and matched product
+                    match_result = ultra_strict_matcher.match_products(
+                        master_with_specs,
+                        matched_with_specs,
+                        category=match.get('unified_category', 'default')
+                    )
+                    
+                    
+                    # Only include if confidence meets ultra-strict threshold (0.84+)
+                    # Lowered from 0.90 to 0.84 to allow legitimate matches with identical models
+                    # (accounts for floating-point precision issues)
+                    if match_result.confidence >= 0.84:
+                        validated_products.append(matched_product)
+                    else:
+                        # Enhanced debug logging
+                        logger.info(f"Ultra-strict filter rejected match: {master_product.get('name', '')} vs {matched_product.get('name', '')} (confidence: {match_result.confidence:.2f})")
+                        if match_result.rejection_reasons:
+                            logger.info(f"Rejection reasons: {match_result.rejection_reasons}")
+                        if match_result.confidence == 0.0:
+                            logger.info(f"Zero confidence - early rejection. Match type: {match_result.match_type}")
+                
+                # Skip this match if only master product remains (no valid matches)
+                if len(validated_products) < 2:
+                    continue
+                    
+                # Update matched_products_data with validated products only
+                matched_products_data = validated_products[1:]  # Exclude master product
+            
+            # Add matched products to retailer_prices
+            for matched_product in matched_products_data:
+                retailer_prices.append({
+                    'retailerCode': matched_product['retailer_code'],
+                    'retailerName': matched_product['retailer_name'],
+                    'productId': matched_product['id'],
+                    'productName': matched_product['name'],
+                    'price': float(matched_product['current_price']) if matched_product.get('current_price') else 0,
+                    'originalPrice': float(matched_product['original_price']) if matched_product.get('original_price') else None,
+                    'discount': matched_product.get('discount_percentage', 0),
+                    'url': matched_product.get('url'),
+                    'image': matched_product['images'][0] if matched_product.get('images') else None,
+                    'inStock': matched_product.get('availability') == 'in_stock',
+                    'lastUpdated': matched_product.get('updated_at')
+                })
             
             # Calculate savings
             prices = [r['price'] for r in retailer_prices if r['price'] > 0]
@@ -144,7 +207,8 @@ async def get_detailed_comparisons(
             'filters': {
                 'limit': limit,
                 'minSavings': min_savings,
-                'category': category
+                'category': category,
+                'matcherMode': matcher_mode
             }
         }
         

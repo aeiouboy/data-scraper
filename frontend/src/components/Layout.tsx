@@ -13,6 +13,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Avatar,
+  Chip,
 } from '@mui/material';
 import FilterableRetailerSelector from './FilterableRetailerSelector';
 import {
@@ -24,6 +26,9 @@ import {
   Settings as SettingsIcon,
   CompareArrows as CompareIcon,
   Monitor as MonitorIcon,
+  TrendingUp as TrendingUpIcon,
+  Store as StoreIcon,
+  Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -53,10 +58,52 @@ export default function Layout({ children }: LayoutProps) {
 
   const drawer = (
     <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Thai Market Intel
-        </Typography>
+      <Toolbar sx={{ 
+        background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+        color: 'white',
+        flexDirection: 'column',
+        alignItems: 'center',
+        py: 1.5,
+        minHeight: '80px !important'
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+          <Avatar sx={{ 
+            bgcolor: 'white', 
+            color: '#1976d2',
+            width: 28,
+            height: 28,
+            fontSize: '0.9rem'
+          }}>
+            <TrendingUpIcon sx={{ fontSize: '1.1rem' }} />
+          </Avatar>
+          <Typography variant="subtitle1" component="div" sx={{ 
+            fontWeight: 700,
+            fontSize: '1rem',
+            textAlign: 'center',
+            lineHeight: 1.2
+          }}>
+            TWD Price
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography variant="subtitle2" sx={{ 
+            fontWeight: 600,
+            fontSize: '0.85rem'
+          }}>
+            Intelligence
+          </Typography>
+          <Chip 
+            label="Hub" 
+            size="small" 
+            sx={{ 
+              bgcolor: 'rgba(255, 255, 255, 0.25)', 
+              color: 'white',
+              fontWeight: 600,
+              fontSize: '0.7rem',
+              height: '20px'
+            }} 
+          />
+        </Box>
       </Toolbar>
       <Divider />
       
@@ -89,9 +136,11 @@ export default function Layout({ children }: LayoutProps) {
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
+          background: 'linear-gradient(90deg, #1976d2 0%, #1565c0 50%, #0d47a1 100%)',
+          boxShadow: '0 4px 20px rgba(25, 118, 210, 0.3)',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: '64px !important' }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -101,9 +150,46 @@ export default function Layout({ children }: LayoutProps) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            {menuItems.find(item => item.path === location.pathname)?.text || 'Thai Market Intelligence'}
-          </Typography>
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AssessmentIcon sx={{ fontSize: 28, color: '#42a5f5' }} />
+              <Typography variant="h6" noWrap component="div" sx={{ 
+                fontWeight: 600,
+                background: 'linear-gradient(45deg, #ffffff 30%, #e3f2fd 90%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
+                {menuItems.find(item => item.path === location.pathname)?.text || 'TWD Price Intelligence Hub'}
+              </Typography>
+            </Box>
+            
+            <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Chip 
+                icon={<StoreIcon sx={{ color: 'white !important' }} />}
+                label="Live Data" 
+                size="small" 
+                sx={{ 
+                  bgcolor: 'rgba(76, 175, 80, 0.8)',
+                  color: 'white',
+                  fontWeight: 500,
+                  '& .MuiChip-icon': {
+                    color: 'white'
+                  }
+                }} 
+              />
+              <Chip 
+                label="Pro" 
+                size="small" 
+                sx={{ 
+                  bgcolor: 'rgba(255, 193, 7, 0.9)',
+                  color: '#1565c0',
+                  fontWeight: 600
+                }} 
+              />
+            </Box>
+          </Box>
         </Toolbar>
       </AppBar>
       <Box

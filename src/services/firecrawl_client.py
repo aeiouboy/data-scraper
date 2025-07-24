@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 import logging
 from urllib.parse import quote, unquote, urlparse, urlunparse
-from config import get_settings
+from config.app_config import get_settings
 
 logger = logging.getLogger(__name__)
 

@@ -12,7 +12,6 @@ import {
   Alert,
   Avatar,
   Stack,
-  Divider,
   LinearProgress,
   Fade,
   Zoom,
@@ -29,6 +28,7 @@ import { analyticsApi, retailerApi, priceComparisonApi } from '../services/api';
 import { useRetailer } from '../contexts/RetailerContext';
 import RetailerSelector from '../components/RetailerSelector';
 import LoadingWrapper from '../components/LoadingWrapper';
+import RetailerPerformanceOverview from '../components/RetailerPerformanceOverview';
 
 const retailerColors: Record<string, string> = {
   'HP': '#FF6B35',   // HomePro Orange
@@ -284,116 +284,22 @@ export default function Dashboard() {
             </Grid>
           </Grid>
 
-          {/* Retailer Breakdown */}
-          <Paper sx={{ mt: 3, p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              📊 Retailer Performance Overview
-            </Typography>
-            
-            <Grid container spacing={2}>
-              {retailerStats
-                .filter(stat => selectedRetailers.includes(stat.code))
-                .map((stat, index) => (
-                  <Grid item xs={12} md={6} lg={4} key={stat.code}>
-                    <Fade in timeout={300 + index * 100}>
-                      <Card variant="outlined" sx={{ height: '100%' }}>
-                        <CardContent>
-                          <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                            <Avatar
-                              sx={{
-                                bgcolor: retailerColors[stat.code] || '#666',
-                                width: 40,
-                                height: 40,
-                              }}
-                            >
-                              {stat.code}
-                            </Avatar>
-                            <Box flex={1}>
-                              <Typography variant="h6" fontWeight="bold">
-                                {stat.name}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                Market Position: Leading Retailer
-                              </Typography>
-                            </Box>
-                          </Stack>
-
-                          <Divider sx={{ mb: 2 }} />
-
-                          <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                              <Typography variant="body2" color="text.secondary">
-                                Products
-                              </Typography>
-                              <Typography variant="h6" fontWeight="bold">
-                                {(stat.actual_products || 0).toLocaleString()}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="body2" color="text.secondary">
-                                In Stock
-                              </Typography>
-                              <Typography variant="h6" fontWeight="bold" color="success.main">
-                                {(stat.in_stock_products || 0).toLocaleString()}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="body2" color="text.secondary">
-                                Avg Price
-                              </Typography>
-                              <Typography variant="h6" fontWeight="bold">
-                                ฿{stat.avg_price?.toFixed(0) || '0'}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="body2" color="text.secondary">
-                                Coverage
-                              </Typography>
-                              <Typography variant="h6" fontWeight="bold">
-                                {stat.category_coverage_percentage?.toFixed(1) || '0'}%
-                              </Typography>
-                            </Grid>
-                          </Grid>
-
-                          {/* Monitoring Tier Distribution */}
-                          <Box mt={2}>
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                              Monitoring Tiers
-                            </Typography>
-                            <Stack direction="row" spacing={1} flexWrap="wrap">
-                              <Chip
-                                label={`Ultra: ${stat.ultra_critical_count}`}
-                                size="small"
-                                color="error"
-                                variant="outlined"
-                              />
-                              <Chip
-                                label={`High: ${stat.high_value_count}`}
-                                size="small"
-                                color="warning"
-                                variant="outlined"
-                              />
-                              <Chip
-                                label={`Standard: ${stat.standard_count}`}
-                                size="small"
-                                color="info"
-                                variant="outlined"
-                              />
-                              <Chip
-                                label={`Low: ${stat.low_priority_count}`}
-                                size="small"
-                                color="default"
-                                variant="outlined"
-                              />
-                            </Stack>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </Fade>
-                  </Grid>
-                ))}
-            </Grid>
-          </Paper>
+          {/* Enhanced Retailer Performance Overview */}
+          <Box sx={{ mt: 3 }}>
+            <RetailerPerformanceOverview
+              retailerStats={retailerStats}
+              selectedRetailers={selectedRetailers}
+              retailerColors={retailerColors}
+              isLoading={isLoadingStats}
+              error={null}
+              onRetailerClick={(retailerCode) => {
+                // Optional: Navigate to retailer-specific dashboard
+                console.log('Retailer clicked:', retailerCode);
+              }}
+              onRefresh={undefined}
+              showComparison={false}
+            />
+          </Box>
 
           {/* Price Comparison Preview */}
           {selectedRetailers.length > 1 && priceComparisonData?.savings_opportunities && (

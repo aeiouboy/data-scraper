@@ -7,15 +7,12 @@ import {
   Chip,
   Stack,
   Avatar,
-  LinearProgress,
   Tooltip,
   IconButton,
   Divider,
 } from '@mui/material';
 import {
   TrendingDown as SavingsIcon,
-  Store as StoreIcon,
-  Info as InfoIcon,
   OpenInNew as OpenIcon,
 } from '@mui/icons-material';
 
@@ -37,6 +34,7 @@ interface PriceComparisonCardProps {
   savingsAmount: number;
   savingsPercentage: number;
   matchConfidence?: number;
+  matcherMode?: 'standard' | 'ultra-strict';
 }
 
 const retailerColors: Record<string, string> = {
@@ -58,6 +56,7 @@ const PriceComparisonCard = React.memo(({
   savingsAmount,
   savingsPercentage,
   matchConfidence = 0.85,
+  matcherMode = 'standard',
 }: PriceComparisonCardProps) => {
   const minPrice = Math.min(...retailers.map(r => r.price));
   const maxPrice = Math.max(...retailers.map(r => r.price));
@@ -85,6 +84,16 @@ const PriceComparisonCard = React.memo(({
                         label={`${(matchConfidence * 100).toFixed(0)}% match`}
                         size="small"
                         color={matchConfidence > 0.8 ? 'success' : 'warning'}
+                      />
+                    </Tooltip>
+                  )}
+                  {matcherMode === 'ultra-strict' && (
+                    <Tooltip title="Ultra-strict matching mode - maximum accuracy">
+                      <Chip 
+                        label="🎯 Ultra-Strict"
+                        size="small"
+                        color="success"
+                        variant="outlined"
                       />
                     </Tooltip>
                   )}

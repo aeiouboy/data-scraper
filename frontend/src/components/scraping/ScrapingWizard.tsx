@@ -205,17 +205,18 @@ export default function ScrapingWizard({
                     value={settings.maxPages}
                     onChange={(_, value) => setSettings({ ...settings, maxPages: value as number })}
                     min={1}
-                    max={50}
+                    max={999}
                     marks={[
                       { value: 1, label: '1' },
                       { value: 10, label: '10' },
-                      { value: 25, label: '25' },
                       { value: 50, label: '50' },
+                      { value: 999, label: 'ALL' },
                     ]}
                     valueLabelDisplay="on"
+                    valueLabelFormat={(value) => value === 999 ? 'ALL' : value.toString()}
                   />
                   <Typography variant="caption" color="text.secondary">
-                    Controls how many pages to scrape from each category
+                    Controls how many pages to scrape from each category. Set to 999 for complete catalog scraping.
                   </Typography>
                 </Paper>
 
@@ -249,7 +250,11 @@ export default function ScrapingWizard({
         const retailer = retailers.find((r: Retailer) => r.code === selectedRetailer);
         const selectedCats = categories.filter((cat: Category) => selectedCategories.includes(cat.code));
         const totalProducts = selectedCats.reduce((sum: number, cat: Category) => sum + (cat.estimated_products || 0), 0);
-        const estimatedHours = totalProducts / 500;
+        
+        // Handle unlimited pagination estimation
+        const isUnlimited = settings.maxPages === 999;
+        const estimatedProducts = isUnlimited ? totalProducts * 10 : totalProducts; // 10x estimate for unlimited
+        const estimatedHours = estimatedProducts / 500;
 
         return (
           <Zoom in timeout={300}>
@@ -284,19 +289,28 @@ export default function ScrapingWizard({
                 </Typography>
                 <Box>
                   <Typography variant="body2">
-                    • Max pages per category: {settings.maxPages}
+                    • Max pages per category: {settings.maxPages === 999 ? 'Unlimited (ALL)' : settings.maxPages}
                   </Typography>
                   <Typography variant="body2">
                     • Priority: {settings.priority}
                   </Typography>
                   <Typography variant="body2">
-                    • Estimated products: ~{totalProducts.toLocaleString()}
+                    • Estimated products: ~{estimatedProducts.toLocaleString()}
+                    {isUnlimited && ' (Complete catalog)'}
                   </Typography>
                   <Typography variant="body2">
                     • Estimated time: ~{estimatedHours < 1 
                       ? `${Math.round(estimatedHours * 60)} minutes`
                       : `${Math.round(estimatedHours)} hours`}
                   </Typography>
+                  {isUnlimited && (
+                    <Alert severity="warning" sx={{ mt: 2 }}>
+                      <Typography variant="body2">
+                        ⚠️ <strong>Complete Catalog Mode:</strong> This will scrape ALL available pages 
+                        from each category. Expected to find 10,000+ products and take 15-30 hours.
+                      </Typography>
+                    </Alert>
+                  )}
                 </Box>
               </Paper>
 

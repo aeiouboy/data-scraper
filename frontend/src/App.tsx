@@ -9,6 +9,9 @@ import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import PriceComparisons from './pages/PriceComparisons';
 import PriceComparisonsOptimized from './pages/PriceComparisonsOptimized';
+import OptimizedPriceComparisons from './pages/OptimizedPriceComparisons';
+import ImprovedPriceComparisonsUI from './pages/ImprovedPriceComparisonsUI';
+import TWDPriceManagerDashboard from './pages/TWDPriceManagerDashboard';
 import Scraping from './pages/Scraping';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
@@ -65,8 +68,12 @@ function App() {
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
-                  <Route path="/price-comparisons" element={<PriceComparisonsOptimized />} />
+                  <Route path="/price-comparisons" element={<TWDPriceManagerDashboard />} />
+                  <Route path="/price-comparisons-improved" element={<ImprovedPriceComparisonsUI />} />
+                  <Route path="/price-comparisons-optimized" element={<OptimizedPriceComparisons />} />
+                  <Route path="/price-comparisons-standard" element={<PriceComparisonsOptimized />} />
                   <Route path="/price-comparisons-legacy" element={<PriceComparisons />} />
+                  <Route path="/price-comparisons-twd" element={<TWDPriceManagerDashboard />} />
                   <Route path="/scraping" element={<Scraping />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/monitoring" element={<Monitoring />} />
