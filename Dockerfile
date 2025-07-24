@@ -21,11 +21,8 @@ RUN apt-get update && apt-get install -y \
 # Upgrade pip and install build tools
 RUN pip install --upgrade pip setuptools wheel
 
-# Install scientific packages first (they take longest)
-RUN pip install --no-cache-dir numpy==1.24.0 scipy==1.10.0
-
-# Copy requirements and install remaining dependencies
-COPY requirements.txt .
+# Copy lightweight requirements and install dependencies
+COPY requirements-docker.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code

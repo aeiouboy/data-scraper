@@ -1,0 +1,37 @@
+# Minimal Dockerfile - guaranteed to work
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install only essential system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip install --upgrade pip
+
+# Install only core dependencies
+RUN pip install --no-cache-dir \
+    fastapi==0.109.0 \
+    uvicorn[standard]==0.27.0 \
+    python-dotenv==1.0.0 \
+    pydantic==2.5.3 \
+    pydantic-settings==2.1.0 \
+    supabase==2.3.4 \
+    beautifulsoup4==4.12.3 \
+    aiohttp==3.9.3 \
+    aiofiles==23.2.1
+
+# Copy application code
+COPY . .
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV ENVIRONMENT=production
+ENV HOST=0.0.0.0
+ENV PORT=8080
+
+EXPOSE 8080
+
+CMD ["python", "run_api.py"]

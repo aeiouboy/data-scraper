@@ -4,7 +4,23 @@
 
 ### 🎯 Quick Solutions
 
-## Option 1: Use Lightweight Dockerfile (Recommended)
+## Option 1: Use Minimal Dockerfile (Guaranteed to work)
+
+```bash
+# Use the minimal version with only core dependencies
+docker build -f Dockerfile.minimal -t ris-data-scrap .
+docker run -p 8080:8080 ris-data-scrap
+```
+
+## Option 2: Use Multi-stage Dockerfile (Best performance)
+
+```bash
+# Use multi-stage build for smaller final image
+docker build -f Dockerfile.multistage -t ris-data-scrap .
+docker run -p 8080:8080 ris-data-scrap
+```
+
+## Option 3: Use Lightweight Dockerfile
 
 ```bash
 # Use the lightweight version without ML dependencies
@@ -12,7 +28,7 @@ docker build -f Dockerfile.lightweight -t ris-data-scrap .
 docker run -p 8080:8080 ris-data-scrap
 ```
 
-## Option 2: Build with Fixed Dockerfile
+## Option 4: Build with Fixed Dockerfile
 
 The updated `Dockerfile` now includes:
 - ✅ All necessary system dependencies (gfortran, libopenblas-dev)
