@@ -8,7 +8,7 @@ import logging
 from contextlib import asynccontextmanager
 import os
 
-from src.api.routers import products, scraping, analytics, config, retailers, price_comparisons, price_comparisons_v2, monitoring, categories, schedules, matching, price_comparisons_advanced, price_comparisons_v2_optimized, matching_optimized, matching_ultra_strict, price_comparisons_v2_fixed, price_comparisons_v3_enhanced
+from src.api.routers import products, scraping, analytics, config, retailers, price_comparisons, price_comparisons_v2, monitoring, categories, schedules, matching, matching_ultra_strict, price_comparisons_v2_fixed, price_comparisons_v3_enhanced, price_comparisons_v2_optimized
 from src.services.supabase_service import SupabaseService
 from src.core.logging_config import setup_logging
 
@@ -50,7 +50,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include core routers (always available)
 app.include_router(products.router, prefix="/api/products", tags=["products"])
 app.include_router(scraping.router, prefix="/api/scraping", tags=["scraping"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
@@ -64,10 +64,18 @@ app.include_router(monitoring.router, prefix="/api/monitoring", tags=["monitorin
 app.include_router(categories.router, prefix="/api/categories", tags=["categories"])
 app.include_router(schedules.router, prefix="/api", tags=["schedules"])
 app.include_router(matching.router, prefix="/api/matching", tags=["matching"])
-app.include_router(matching_optimized.router, tags=["matching-optimized"])
 app.include_router(matching_ultra_strict.router, tags=["matching-ultra-strict"])
-app.include_router(price_comparisons_advanced.router, tags=["price-comparisons-advanced"])
 app.include_router(price_comparisons_v3_enhanced.router, tags=["price-comparisons-v3-enhanced"])
+
+# Include advanced routers only if numpy dependencies are available
+try:
+    import numpy
+    from src.api.routers import matching_optimized, price_comparisons_advanced
+    app.include_router(matching_optimized.router, tags=["matching-optimized"])
+    app.include_router(price_comparisons_advanced.router, tags=["price-comparisons-advanced"])
+    logger.info("Advanced analytics routers loaded successfully")
+except ImportError:
+    logger.warning("NumPy dependencies not available. Advanced analytics endpoints disabled.")
 
 
 @app.get("/")
