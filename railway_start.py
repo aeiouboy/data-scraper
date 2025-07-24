@@ -35,7 +35,7 @@ def main():
         logger.info(f"📊 Environment: {environment}")
         logger.info(f"🌐 Host: {host}")
         logger.info(f"🔌 Port: {port}")
-        logger.info(f"🩺 Health check: http://{host}:{port}/health")
+        logger.info(f"🌍 API will be available at: http://{host}:{port}")
         logger.info("=" * 50)
         
         # Railway production settings
