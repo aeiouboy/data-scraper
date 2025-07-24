@@ -5,6 +5,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from decimal import Decimal
 import logging
+import os
 from supabase import create_client, Client
 from config.app_config import get_settings
 from src.models.product import Product, PriceHistory, ScrapeJob
@@ -17,10 +18,28 @@ class SupabaseService:
     
     def __init__(self):
         settings = get_settings()
-        self.client: Client = create_client(
-            settings.supabase_url,
-            settings.supabase_service_role_key
-        )
+        
+        # Temporarily clear proxy environment variables to avoid proxy parameter errors
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']
+        original_values = {}
+        
+        try:
+            # Save original values and clear proxy vars
+            for var in proxy_vars:
+                if var in os.environ:
+                    original_values[var] = os.environ[var]
+                    del os.environ[var]
+            
+            # Create client without proxy interference
+            self.client: Client = create_client(
+                settings.supabase_url,
+                settings.supabase_service_role_key
+            )
+            
+        finally:
+            # Restore original proxy environment variables
+            for var, value in original_values.items():
+                os.environ[var] = value
     
     # Product operations
     async def get_product_by_sku(self, sku: str) -> Optional[Dict[str, Any]]:

@@ -4,6 +4,7 @@ Firecrawl API client with rate limiting and retry logic
 import asyncio
 import httpx
 import re
+import os
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 import logging
@@ -69,10 +70,28 @@ class FirecrawlClient:
         self.api_key = api_key or settings.firecrawl_api_key
         self.base_url = "https://api.firecrawl.dev/v0"
         self.rate_limiter = RateLimiter(calls_per_minute=30)
-        self.client = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            timeout=30.0
-        )
+        
+        # Temporarily clear proxy environment variables to avoid proxy parameter errors
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']
+        original_values = {}
+        
+        try:
+            # Save original values and clear proxy vars
+            for var in proxy_vars:
+                if var in os.environ:
+                    original_values[var] = os.environ[var]
+                    del os.environ[var]
+            
+            # Create client without proxy interference
+            self.client = httpx.AsyncClient(
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                timeout=30.0
+            )
+            
+        finally:
+            # Restore original proxy environment variables
+            for var, value in original_values.items():
+                os.environ[var] = value
     
     async def __aenter__(self):
         return self
