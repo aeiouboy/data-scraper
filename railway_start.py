@@ -62,6 +62,12 @@ def main():
         
         # Railway production settings
         logger.info("🚀 Starting uvicorn server...")
+        logger.info(f"📋 Configuration summary:")
+        logger.info(f"   - Host: {host}")
+        logger.info(f"   - Port: {port}")
+        logger.info(f"   - Workers: 1")
+        logger.info(f"   - Environment: {environment}")
+        
         uvicorn.run(
             "src.api.main:app",
             host=host,
@@ -70,15 +76,7 @@ def main():
             access_log=True,
             reload=False,  # No reload in production
             workers=1,     # Single worker for Railway free tier
-            timeout_keep_alive=30,
-            timeout_graceful_shutdown=30,
-            # Railway-specific optimizations
-            backlog=2048,
-            max_requests=1000,
-            max_requests_jitter=100,
-            # Enhanced error handling
-            limit_max_requests=10000,
-            limit_concurrency=1000
+            timeout_keep_alive=30
         )
         
     except Exception as e:

@@ -133,7 +133,12 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for Railway deployment"""
+    """Simple health check endpoint for Railway deployment"""
+    return {"status": "healthy"}
+
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """Detailed health check endpoint"""
     import time
     from datetime import datetime
     
@@ -148,6 +153,11 @@ async def health_check():
             "database": "healthy"  # Could add actual DB check if needed
         }
     }
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {"message": "RIS Data Scrap API is running", "status": "healthy"}
 
 
 @app.exception_handler(Exception)
