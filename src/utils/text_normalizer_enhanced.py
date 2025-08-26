@@ -451,6 +451,45 @@ class EnhancedTextNormalizer:
         
         return min(1.0, important_score)
     
+    def extract_tokens(self, text: str) -> List[str]:
+        """Extract meaningful tokens from text for matching"""
+        if not text:
+            return []
+        
+        # Normalize first
+        normalized = self.normalize(text)
+        
+        # Split into tokens
+        tokens = normalized.split()
+        
+        # Filter out very short tokens
+        meaningful_tokens = [
+            token for token in tokens 
+            if len(token) > 2 or token.isdigit() or any(c.isdigit() for c in token)
+        ]
+        
+        return meaningful_tokens
+    
+    def extract_brand(self, text: str) -> Optional[str]:
+        """Extract brand name from text"""
+        if not text:
+            return None
+        
+        text_lower = text.lower()
+        
+        # Check for known brands in text
+        known_brands = ['daikin', 'mitsubishi', 'samsung', 'lg', 'panasonic', 'toshiba', 'sharp', 'haier']
+        for brand in known_brands:
+            if brand in text_lower:
+                return brand.upper()
+        
+        # Check Thai brand names
+        for thai_brand, english_brand in self.brand_mappings.items():
+            if thai_brand.lower() in text_lower:
+                return english_brand.upper()
+        
+        return None
+    
     def clear_cache(self):
         """Clear all caches"""
         self.sku_cache.clear()

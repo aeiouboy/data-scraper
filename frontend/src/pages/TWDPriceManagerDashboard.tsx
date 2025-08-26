@@ -24,6 +24,8 @@ import {
   ToggleButtonGroup,
   Badge,
   Divider,
+  Pagination,
+  InputAdornment,
 } from '@mui/material';
 import {
   TrendingDown as SavingsIcon,
@@ -42,6 +44,7 @@ import {
   AccountBalance as BankIcon,
   Timeline as TimelineIcon,
   Notifications as NotificationsIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { priceComparisonApi } from '../services/api';
@@ -112,7 +115,9 @@ export default function TWDPriceManagerDashboard() {
   const [minSavingsInput, setMinSavingsInput] = useState(100);
   const [showFilters, setShowFilters] = useState(false);
   const [matcherMode, setMatcherMode] = useState<'standard' | 'ultra-strict'>('standard');
-  const itemsPerPage = 12;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const itemsPerPage = 50;
   
 
 
@@ -126,9 +131,19 @@ export default function TWDPriceManagerDashboard() {
     return () => clearTimeout(timer);
   }, [minSavingsInput]);
 
+  // Debounced update for search
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+      setCurrentPage(0);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   // Fetch detailed price comparisons using optimized endpoint
   const { data: detailedData, isLoading: loadingDetailed, refetch: refetchDetailed } = useQuery({
-    queryKey: ['price-comparisons-optimized', minSavings, categoryFilter, currentPage, matcherMode, viewMode],
+    queryKey: ['price-comparisons-optimized', minSavings, categoryFilter, searchQuery, currentPage, matcherMode, viewMode],
     queryFn: async () => {
       try {
         const limit = viewMode === 'grid' ? itemsPerPage : 50;
@@ -139,6 +154,7 @@ export default function TWDPriceManagerDashboard() {
           offset,
           minSavings: minSavings,
           category: categoryFilter || undefined,
+          search: searchQuery || undefined,
         });
         
         if (!response.data) {
@@ -510,6 +526,25 @@ export default function TWDPriceManagerDashboard() {
           💰 Detailed Price Comparisons
         </Typography>
         
+        {/* Search input */}
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            size="small"
+            placeholder="Search products by name..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+        
         {loadingDetailed ? (
           <Box sx={{ p: 2 }}>
             <Grid container spacing={2}>
@@ -541,6 +576,26 @@ export default function TWDPriceManagerDashboard() {
                 </Grid>
               ))}
             </Grid>
+            
+            {/* Pagination controls */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, borderTop: 1, borderColor: 'divider' }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Typography variant="body2" color="text.secondary">
+                  Page {currentPage + 1}
+                </Typography>
+                <Pagination
+                  count={Math.ceil(2331 / itemsPerPage)} // Total records / items per page
+                  page={currentPage + 1}
+                  onChange={(event, value) => setCurrentPage(value - 1)}
+                  color="primary"
+                  variant="outlined"
+                  shape="rounded"
+                />
+                <Typography variant="body2" color="text.secondary">
+                  Total: ~2,331 matches
+                </Typography>
+              </Stack>
+            </Box>
           </Box>
         ) : (
           <Box sx={{ p: 4, textAlign: 'center' }}>

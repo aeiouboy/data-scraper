@@ -71,7 +71,14 @@ def main():
             reload=False,  # No reload in production
             workers=1,     # Single worker for Railway free tier
             timeout_keep_alive=30,
-            timeout_graceful_shutdown=30
+            timeout_graceful_shutdown=30,
+            # Railway-specific optimizations
+            backlog=2048,
+            max_requests=1000,
+            max_requests_jitter=100,
+            # Enhanced error handling
+            limit_max_requests=10000,
+            limit_concurrency=1000
         )
         
     except Exception as e:

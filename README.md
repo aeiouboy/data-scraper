@@ -284,6 +284,26 @@ pytest --cov=app tests/
 
 ## 🚀 Deployment
 
+### Railway Deployment (Recommended)
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+
+**Quick Deploy**:
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Deploy with one command
+./deploy-railway.sh production
+```
+
+**Manual Setup**:
+1. Connect GitHub repo to Railway
+2. Set environment variables (see [Railway Guide](RAILWAY_DEPLOYMENT_GUIDE.md))
+3. Deploy automatically with git push
+
+See [Railway Deployment Guide](RAILWAY_DEPLOYMENT_GUIDE.md) for complete instructions.
+
 ### Docker Deployment
 
 ```bash
@@ -297,15 +317,26 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-### Production Deployment
+### Production Deployment Options
 
-1. Set environment to production in `.env`
-2. Configure proper database credentials
-3. Set up reverse proxy (nginx)
-4. Enable HTTPS
-5. Configure monitoring
+| Platform | Guide | Benefits |
+|----------|-------|----------|
+| **Railway** | [Railway Guide](RAILWAY_DEPLOYMENT_GUIDE.md) | ✅ Auto-scaling, ✅ Zero-config, ✅ Git integration |
+| **Docker** | [Docker Guide](docs/deployment/DEPLOYMENT.md) | ✅ Full control, ✅ Multi-service |
+| **Fly.io** | [Fly Guide](fly.toml) | ✅ Global edge, ✅ Docker-based |
+| **Render** | [Render Guide](render.yaml) | ✅ Auto-deploy, ✅ Free tier |
 
-See [Deployment Guide](docs/deployment/DEPLOYMENT.md) for detailed instructions.
+### Railway Quick Start
+```bash
+# 1. One-command deployment
+./deploy-railway.sh
+
+# 2. Check deployment status
+railway status
+
+# 3. View your deployed API
+railway open
+```
 
 ## 🤝 Contributing
 

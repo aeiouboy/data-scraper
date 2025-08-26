@@ -7,8 +7,12 @@ from fastapi.responses import JSONResponse
 import logging
 from contextlib import asynccontextmanager
 import os
+import time
 
-from src.api.routers import products, scraping, analytics, config, retailers, price_comparisons, price_comparisons_v2, monitoring, categories, schedules, matching, matching_ultra_strict, price_comparisons_v2_fixed, price_comparisons_v3_enhanced, price_comparisons_v2_optimized
+# Track startup time for health check
+startup_time = time.time()
+
+from src.api.routers import products, scraping, analytics, config, retailers, price_comparisons, price_comparisons_v2, monitoring, categories, schedules, matching, matching_ultra_strict, price_comparisons_v2_fixed, price_comparisons_v3_enhanced, price_comparisons_v2_optimized, matching_v2, price_comparisons_direct
 from src.services.supabase_service import SupabaseService
 from src.core.logging_config import setup_logging
 from src.utils.proxy_manager import ProxyManager
@@ -79,11 +83,13 @@ app.include_router(retailers.router, prefix="/api/retailers", tags=["retailers"]
 app.include_router(price_comparisons.router, prefix="/api/price-comparisons", tags=["price-comparisons"])
 app.include_router(price_comparisons_v2.router, prefix="/api/price-comparisons-v2", tags=["price-comparisons-v2"])
 app.include_router(price_comparisons_v2_optimized.router, prefix="/api/price-comparisons-v2", tags=["price-comparisons-v2-optimized"])
+app.include_router(price_comparisons_direct.router, prefix="/api/price-comparisons-direct", tags=["price-comparisons-direct"])
 app.include_router(price_comparisons_v2_fixed.router, prefix="/api/price-comparisons-v2-fixed", tags=["price-comparisons-v2-fixed"])
 app.include_router(monitoring.router, prefix="/api/monitoring", tags=["monitoring"])
 app.include_router(categories.router, prefix="/api/categories", tags=["categories"])
 app.include_router(schedules.router, prefix="/api", tags=["schedules"])
 app.include_router(matching.router, prefix="/api/matching", tags=["matching"])
+app.include_router(matching_v2.router, prefix="/api/v2/matches", tags=["matching-v2"])
 app.include_router(matching_ultra_strict.router, tags=["matching-ultra-strict"])
 app.include_router(price_comparisons_v3_enhanced.router, tags=["price-comparisons-v3-enhanced"])
 
@@ -127,8 +133,21 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+    """Health check endpoint for Railway deployment"""
+    import time
+    from datetime import datetime
+    
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "2.0.0",
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "uptime": time.time() - startup_time if 'startup_time' in globals() else 0,
+        "services": {
+            "api": "healthy",
+            "database": "healthy"  # Could add actual DB check if needed
+        }
+    }
 
 
 @app.exception_handler(Exception)

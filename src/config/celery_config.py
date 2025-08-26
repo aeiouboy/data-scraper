@@ -28,12 +28,15 @@ celery_app.conf.update(
     task_routes={
         'app.tasks.category_tasks.*': {'queue': 'monitoring'},
         'app.tasks.scraping_tasks.*': {'queue': 'scraping'},
+        'src.services.background.matching_tasks.*': {'queue': 'matching'},
     },
     
     # Queue configuration
     task_queues=(
         Queue('monitoring', Exchange('monitoring'), routing_key='monitoring'),
         Queue('scraping', Exchange('scraping'), routing_key='scraping'),
+        Queue('matching', Exchange('matching'), routing_key='matching'),
+        Queue('batch', Exchange('batch'), routing_key='batch'),
         Queue('default', Exchange('default'), routing_key='default'),
     ),
     

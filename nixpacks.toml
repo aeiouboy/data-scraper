@@ -1,11 +1,23 @@
 [variables]
 NIXPACKS_PYTHON_VERSION = "3.11"
+PYTHONUNBUFFERED = "1"
+PYTHONDONTWRITEBYTECODE = "1"
 
 [phases.setup]
-nixPkgs = ["python311", "gcc"]
+nixPkgs = ["python311", "gcc", "pkg-config"]
 
 [phases.install]
-cmds = ["python -m venv /opt/venv", ". /opt/venv/bin/activate && pip install -r requirements-railway.txt"]
+cmds = [
+    "python -m venv /opt/venv", 
+    ". /opt/venv/bin/activate && pip install --upgrade pip setuptools wheel",
+    ". /opt/venv/bin/activate && pip install -r requirements-railway.txt --no-cache-dir"
+]
+
+[phases.build]
+cmds = [
+    ". /opt/venv/bin/activate && python -c 'from src.api.main import app; print(\"✅ FastAPI app import successful\")'",
+    "echo '✅ Build validation complete'"
+]
 
 [start]
-cmd = "python railway_start.py"
+cmd = ". /opt/venv/bin/activate && python railway_start.py"

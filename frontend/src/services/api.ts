@@ -193,9 +193,10 @@ export const priceComparisonApi = {
     minSavingsPercent?: number;
     minConfidence?: number;
     category?: string;
+    search?: string;
     sortBy?: string;
     order?: 'asc' | 'desc';
-  }) => api.get('/price-comparisons-v2/detailed-comparisons-optimized', { params }),
+  }) => api.get('/price-comparisons-direct/comparisons-direct', { params }),
   
   getQuickStats: (category?: string) => 
     api.get('/price-comparisons-v2/quick-stats', { params: category ? { category } : {} }),
